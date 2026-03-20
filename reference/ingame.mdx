@@ -1,0 +1,169 @@
+---
+title: 'ingame.lua'
+description: 'Gameplay systems: respawning, gold balancing, towers, and mutators'
+icon: 'sword'
+---
+
+## Overview
+
+`ingame.lua` contains the major systems that run while the game is being played. It manages:
+
+- Custom respawn time calculation
+- Team gold balancing
+- Buyback status enforcement
+- Tower strength scaling
+- Troll-combo banning
+- The global mutator system
+- In-game event listeners (purchases, level-ups, reconnects, order filters)
+
+The module defines the `Ingame` singleton class and is lazily required by `pregame.lua` and `commands.lua`.
+
+## The `Ingame` class
+
+```lua
+Ingame = class({})
+```
+
+## `Ingame:init()`
+
+Called once after the heroes have spawned. Wires up all in-game subsystems and registers Custom Game Event listeners.
+
+```lua
+function Ingame:init()
+    self:handleRespawnModifier()
+    self:initGoldBalancer()
+    self:checkBuybackStatus()
+    self:addStrongTowers()
+    self:loadTrollCombos()
+    self:AddTowerBotController()
+    self:initGlobalMutator()
+
+    -- vote flags (set to true when the vote passes)
+    self.voteEnabledCheatMode      = false
+    self.voteDoubleCreeps          = false
+    self.voteDisableAntiKamikaze   = false
+    self.voteDisableRespawnLimit   = false
+    self.voteEnableFatOMeter       = false
+    self.voteEnableRefresh         = false
+    self.voteEnableBuilder         = false
+    self.voteAntiRat               = false
+
+    -- respawn escalation thresholds
+    self.timeToIncreaseRespawnRate    = 2400  -- 40 minutes
+    self.timeToIncreaseRepawnInterval = 600
+    self.timeToStopBalancingMechanic  = 1200  -- 20 minutes
+end
+```
+
+## 10v10 player colour map
+
+Player colours for the 10v10 layout are stored in `self.playerColors`, indexed by `playerID`. Values are `{R, G, B}` where each component is in the 0–255 range.
+
+```lua
+self.playerColors    = {}
+self.playerColors[0] = { 57, 117, 231 }     -- Blue
+self.playerColors[1] = { 122, 241, 187 }    -- Teal
+self.playerColors[2] = { 172, 10, 174 }     -- Purple
+self.playerColors[3] = { 243, 234, 33 }     -- Yellow
+self.playerColors[4] = { 240, 111, 19 }     -- Orange
+self.playerColors[5] = { 255, 0, 0 }        -- Red
+self.playerColors[6] = { 0, 66, 255 }       -- Dark Blue
+self.playerColors[7] = { 25, 230, 185 }     -- Salmon / Seafoam
+self.playerColors[8] = { 84, 0, 129 }       -- Indigo
+self.playerColors[9] = { 255, 252, 0 }      -- Gold
+-- Spectator / observer slots
+self.playerColors[15] = { 254, 186, 14 }    -- Amber
+self.playerColors[16] = { 32, 192, 0 }      -- Green
+self.playerColors[17] = { 252, 255, 236 }   -- Off-white
+self.playerColors[18] = { 150, 150, 151 }   -- Grey
+self.playerColors[19] = { 126, 191, 241 }   -- Light Blue
+```
+
+## Function reference
+
+<AccordionGroup>
+  <Accordion title="Ingame:handleRespawnModifier()">
+    Registers a listener on the `entity_killed` game event. When a hero dies it calculates a modified respawn time:
+
+    ```lua
+    function Ingame:handleRespawnModifier()
+        ListenToGameEvent('entity_killed', function(keys)
+            local respawnModifierPercentage = OptionManager:GetOption('respawnModifierPercentage')
+            local respawnModifierConstant   = OptionManager:GetOption('respawnModifierConstant')
+            -- ...
+            timeLeft = timeLeft * (respawnModifierPercentage / 100) + respawnModifierConstant
+        end, self)
+    end
+    ```
+
+    After 40 minutes (`timeToIncreaseRespawnRate = 2400 s`) the respawn rate increases further unless `voteDisableRespawnLimit` is `true`.
+  </Accordion>
+
+  <Accordion title="Ingame:initGoldBalancer()">
+    Sets up a periodic timer that tracks gold disparity between Radiant and Dire. When a significant imbalance is detected, the losing team receives periodic gold injections to keep the game competitive.
+
+    Key fields written:
+    - `self.radiantBalanceMoney` / `self.direBalanceMoney`
+    - `self.radiantTotalBalanceMoney` / `self.direTotalBalanceMoney`
+    - `self.timeImbalanceStarted`
+
+    Balancing stops after `timeToStopBalancingMechanic` (1 200 s / 20 minutes).
+  </Accordion>
+
+  <Accordion title="Ingame:checkBuybackStatus()">
+    Enforces the `buybackCooldownConstant` option. Listens for buyback events and applies a flat cooldown on top of the standard Dota buyback timer when the option is non-zero.
+  </Accordion>
+
+  <Accordion title="Ingame:addStrongTowers()">
+    Reads `OptionManager:GetOption('strongTowers')` and `OptionManager:GetOption('towerCount')`. Iterates all map towers and scales HP/damage accordingly. Also handles the `middleTowers` option that adds extra towers to the mid lane.
+  </Accordion>
+
+  <Accordion title="Ingame:loadTrollCombos()">
+    Reads `scripts/kv/troll_combos.kv` (or the ban list from the current option set) and populates the internal troll-combo list. When `OptionManager:GetOption('banTrollCombos')` is `true`, ability picks that match a troll combo are rejected during selection.
+  </Accordion>
+
+  <Accordion title="Ingame:initGlobalMutator()">
+    Reads all active mutator options (`vampirism`, `killstreakPower`, `cooldownReduction`, `explodeOnDeath`, etc.) from `OptionManager` and applies them as global modifiers to every hero and creep in the game. Each mutator is backed by a `modifier_*_mutator` Lua class registered in `pregame.lua`.
+  </Accordion>
+
+  <Accordion title="Ingame:OnPlayerReconnect(keys)">
+    Fires 4 seconds after a player reconnects. Sends `lodAttemptReconnect` to resync the client's UI state and re-colours neutral items in the shop.
+  </Accordion>
+
+  <Accordion title="Ingame:OnHeroLeveledUp(keys)">
+    Awards an extra ability point at levels 23 and 24 (which the base game does not grant). Also recalculates the hero's death XP reward using a custom formula:
+
+    ```lua
+    local function GetXPForLevel(x)
+        if x == 1 then return 100
+        elseif x < 8 then return 20 * (x + 4)
+        elseif x == 8 then return 330
+        else return GetXPForLevel(x - 1) + 110
+        end
+    end
+    ```
+  </Accordion>
+
+  <Accordion title="Ingame:FilterExecuteOrder(filterTable)">
+    Order filter registered on the game mode entity. Blocks glyph use when the team's glyph is already active (custom fortify system). Also blocks neutral item purchases when `OptionManager:GetOption('neutralItems') == 0`.
+  </Accordion>
+
+  <Accordion title="Ingame:CommandNotification(tag, message, duration)">
+    Broadcasts a formatted notification message to all clients. Used by cheat commands to announce what was used and by whom.
+  </Accordion>
+</AccordionGroup>
+
+## Vote flags
+
+The following boolean fields on the `Ingame` singleton are set to `true` when the corresponding player vote passes:
+
+| Field | Command that sets it | Effect |
+|-------|---------------------|--------|
+| `voteEnabledCheatMode` | `-enablecheat` / `-ec` | Unlocks cheat commands |
+| `voteDoubleCreeps` | `-doublecreeps` / `-dc` | Sets `neutralMultiply` to 2 |
+| `voteDisableAntiKamikaze` | `-enablekamikaze` / `-ek` | Removes kamikaze penalty |
+| `voteDisableRespawnLimit` | `-enablerespawn` / `-er` | Freezes respawn escalation |
+| `voteEnableFatOMeter` | `-enablefat` / `-ef` | Activates the Fat-O-Meter |
+| `voteEnableRefresh` | `-enablerefresh` | Refreshes cooldowns on death |
+| `voteEnableBuilder` | `-enablebuilder` / `-eb` | Opens the ingame hero builder |
+| `voteAntiRat` | `-antirat` / `-ar` | Locks Tier-3 towers until earlier tiers fall |

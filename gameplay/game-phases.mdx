@@ -1,0 +1,30 @@
+---
+title: Game phases
+description: An overview of the eleven sequential phases that make up a Legends of Dota Redux match, from loading through to the live game.
+---
+
+Every match progresses through eleven distinct phases. The server advances through them automatically; players interact with each phase via the custom UI panels that appear at the appropriate time.
+
+## Phase overview
+
+| # | Internal constant | Name | What happens |
+|---|-------------------|------|--------------|
+| 1 | `PHASE_LOADING` | Loading | The server waits for all players to connect and finish loading. Setup timers are suspended and auto-launch is disabled until this phase completes. |
+| 2 | `PHASE_OPTION_VOTING` | Option voting | Players vote on high-level game settings — map variant, gamemode (All Pick, Single Draft, etc.), banning rules, and fast-start options. Votes are counted by percentage threshold. |
+| 3 | `PHASE_OPTION_SELECTION` | Option selection | Remaining options that were not resolved by vote are configured. The host or server defaults finalise the option set that will govern the rest of the match. |
+| 4 | `PHASE_BANNING` | Banning | Abilities (and optionally heroes) are banned from the pool. Each player receives a limited number of bans. Invisibility abilities can also be banned globally if that option was voted in. |
+| 5 | `PHASE_SELECTION` | Hero & ability selection | Players choose their hero and pick abilities from the filtered pool. This is the primary pick phase for standard All Pick and similar modes. |
+| 6 | `PHASE_DRAFTING` | Drafting | Placeholder phase reserved for draft-style modes (e.g. mirror draft). Players alternate picks from a shared pool of heroes and abilities. |
+| 7 | `PHASE_RANDOM_SELECTION` | Random selection | Used in All Random mode. The server automatically assigns a hero and a randomised ability build to each player. Players can still review their assigned build before the game starts. |
+| 8 | `PHASE_REVIEW` | Review | All players can inspect their finalised build and those of their teammates before heroes are spawned. No further changes can be made at this point. |
+| 9 | `PHASE_SPAWN_HEROES` | Spawn heroes | Heroes are created on the map. The item-picking panel becomes available simultaneously. Internally this phase transitions immediately into item picking. |
+| 10 | `PHASE_ITEM_PICKING` | Item picking | Players spend their starting gold on starting items from the shop before the game clock begins. |
+| 11 | `PHASE_INGAME` | In-game | The game clock starts, creeps spawn, and normal Dota 2 rules apply. Chat commands and in-game votes become available. |
+
+## Phase transitions
+
+Phase advancement is managed by the pregame controller (`pregame.lua`). Each phase has a configurable timer; when the timer expires the server calls `setPhase` with the next phase constant. Some transitions are gated — for example, the server will not leave `PHASE_LOADING` until all connected players have loaded.
+
+<Note>
+The `PHASE_DRAFTING` constant exists in the code as a placeholder. Draft mode behaviour is partially implemented but may not be fully available in all map variants.
+</Note>

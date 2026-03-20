@@ -1,0 +1,119 @@
+---
+title: 'VScripts overview'
+description: 'Overview of the Lua scripting layer in Legends of Dota Redux'
+icon: 'code'
+---
+
+## What are VScripts?
+
+Dota 2 custom games use a server-side Lua scripting system called **VScripts**. When a custom game loads, the Dota 2 engine executes a root entry point (`addon_game_mode.lua`) which bootstraps every other module using Lua's `require` function or Valve's `LinkLuaModifier` helper for modifier classes.
+
+All scripts live under:
+
+```
+game/scripts/vscripts/
+```
+
+Modifiers (passive buff/debuff classes) must be registered before use:
+
+```lua
+LinkLuaModifier(
+    "modifier_neutral_power",
+    "abilities/modifiers/modifier_neutral_power.lua",
+    LUA_MODIFIER_MOTION_NONE
+)
+```
+
+Regular modules are loaded with `require`:
+
+```lua
+local constants = require('constants')
+require('lib/timers')
+```
+
+## Script file reference
+
+| File | Purpose |
+|------|---------|
+| `addon_game_mode.lua` | Root entry point; wires up all game-mode events |
+| `pregame.lua` | Hero/skill selection phase — the most important file in Redux |
+| `ingame.lua` | Gameplay systems: respawning, gold balancing, towers, mutators |
+| `commands.lua` | All player-typed chat commands (vote, debug, and cheat commands) |
+| `optionmanager.lua` | Shared key–value store for game options |
+| `util.lua` | General-purpose utilities used across all other modules |
+| `constants.lua` | Hardcoded numeric constants shared across the project |
+| `network.lua` | Network table helpers for syncing state to clients |
+| `chat.lua` | Custom chat system used during the menu/lobby phase |
+| `skillmanager.lua` | Functions for swapping hero skills mid-game |
+| `spellfixes.lua` | Per-ability corrections, fixes, and balance patches |
+| `dedicated.lua` | Dedicated-server configuration helpers |
+| `lod_debug.lua` | Console commands for server-side debugging |
+| `optionmanager.lua` | Game option accessors (`GetOption` / `SetOption`) |
+| `panorama_shop.lua` | Layout and logic for the custom Panorama shop (from Angel Arena: Black Star) |
+| `obstacles.lua` | Obstacle spawn list for the deprecated Duel arena mechanic |
+| `survival.lua` | Incomplete co-op holdout game mode (Ash47) |
+| `challenge.lua` | Incomplete co-op holdout variant (Ash47) |
+| `triggers.lua` | Map trigger handlers |
+| `stats_client.lua` | Client-side statistics collection |
+
+## Directory structure
+
+```
+vscripts/
+├── addon_game_mode.lua
+├── pregame.lua
+├── ingame.lua
+├── commands.lua
+├── optionmanager.lua
+├── util.lua
+├── constants.lua
+├── network.lua
+├── chat.lua
+├── skillmanager.lua
+├── spellfixes.lua
+├── lod_debug.lua
+├── panorama_shop.lua
+├── abilities/
+│   ├── modifiers/
+│   ├── mutators/
+│   ├── global_mutators/
+│   ├── hero_perks/
+│   └── ...
+├── lib/
+│   ├── timers.lua
+│   ├── wearables.lua
+│   └── StatUploaderFunctions.lua
+└── statcollection/
+    └── init.lua
+```
+
+## How scripts are loaded
+
+`pregame.lua` is the main bootstrap file. It requires every other core module and calls `LinkLuaModifier` for every Lua-based modifier that the game needs:
+
+```lua
+-- Standard module requires
+local constants = require('constants')
+local SpellFixes = require('spellfixes')
+require('lib/timers')
+require('chat')
+require('dedicated')
+
+-- Modifier registration (must happen before any unit with that modifier is spawned)
+LinkLuaModifier(
+    "modifier_vampirism_mutator",
+    "abilities/mutators/modifier_vampirism_mutator.lua",
+    LUA_MODIFIER_MOTION_NONE
+)
+```
+
+After all requires, `pregame.lua` loads the game's KV (key-value) data into `GameRules.KVs`:
+
+```lua
+GameRules.KVs = {}
+GameRules.KVs["npc_abilities"]         = util.abilityKVs
+GameRules.KVs["npc_abilities_custom"]  = LoadKeyValues('scripts/npc/npc_abilities_custom.txt')
+GameRules.KVs["npc_abilities_override"]= LoadKeyValues('scripts/npc/npc_abilities_override.txt')
+GameRules.KVs.herolist                 = LoadKeyValues('scripts/npc/herolist.txt')
+GameRules.KVs.abilitylist             = LoadKeyValues('scripts/kv/abilities.kv')
+```

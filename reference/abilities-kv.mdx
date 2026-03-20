@@ -1,0 +1,129 @@
+---
+title: abilities.kv
+description: Master list of all selectable abilities and their bracket categories.
+---
+
+`abilities.kv` is the authoritative list of every ability that can appear on the Legends of Dota Redux skill-select screen. It is loaded at game start and drives what players can choose when drafting their build.
+
+## Top-Level Structure
+
+The file has two top-level blocks inside the root `"Abilities"` key:
+
+| Block | Purpose |
+|---|---|
+| `skills` | All ability brackets — the main pickable pool, neutrals, OP abilities, single-player abilities, etc. |
+| `heroToSkillMap` | Optional per-hero starting ability overrides (most entries are commented out). |
+
+## Ability Brackets
+
+Brackets are named sub-blocks inside `skills`. Each bracket groups abilities that share a category or restriction.
+
+| Bracket | Description |
+|---|---|
+| `main` | The primary pool. All standard and custom abilities available in normal games. |
+| `neutral` | Neutral creep abilities, further sub-divided by creature archetype group (e.g. `alpha_wolf_group`, `black_dragon_group`). |
+| `brawler` | Brawler-class abilities (melee-only reversed Marksmanship variants). |
+| `spell_lab` | Spell Lab custom abilities. |
+| `oneshotonekill` | One-shot/one-kill combo abilities. |
+| `overflow` | Overflow custom abilities from the Overflow ability pack. |
+| `angel_arena_blackstar` | Angel Arena Blackstar abilities. |
+| `resurgence` | Resurgence abilities. |
+| `radiant_jungle` | Radiant Jungle abilities. |
+| `overflow_ult` | Overflow ultimate abilities. |
+| `mercy` | Mercy abilities. |
+| `holdout` | Holdout abilities. |
+| `item_abilities` | Abilities derived from items. |
+| `cherub_abilities` | Cherub hero abilities. |
+| `uther_abiliites` | Uther hero abilities. |
+| `proteus_abiliites` | Proteus hero abilities. |
+
+The numbers assigned to each ability entry (`"1"`) are used internally for network-encoding ability selections and for the encryption layer — they are not ability levels.
+
+## File Format
+
+```
+"Abilities"
+{
+    "skills"
+    {
+        "main"
+        {
+            // Custom redux ability
+            "morph_int_str_redux"                 "1"  // custom
+
+            // Standard Dota ability
+            "pudge_flesh_heap"                    "1"
+
+            // Commented-out sub-ability (excluded from picking)
+            //"alchemist_unstable_concoction_throw"  "1"  // sub-ability of Unstable Concoction
+        }
+
+        "neutral"
+        {
+            "alpha_wolf_group"
+            {
+                "alpha_wolf_critical_strike"      "1"
+                "berserker_troll_break"           "1"
+                "ghost_frost_attack"              "1"
+                "gnoll_assassin_envenomed_weapon" "1"
+                "kobold_disarm"                   "1"
+            }
+        }
+    }
+
+    "heroToSkillMap"
+    {
+        // "npc_dota_hero_abaddon"
+        // {
+        //     "1"  "abaddon_aphotic_shield"
+        // }
+    }
+}
+```
+
+<Note>
+Sub-abilities (e.g. `alchemist_unstable_concoction_throw`, the throw sub-ability of Unstable Concoction) are intentionally commented out. Showing them on the pick screen would allow players to select a sub-ability without its parent, causing broken behaviour.
+</Note>
+
+## Real Snippet
+
+The following is taken directly from the top of the `main` bracket:
+
+```
+"main"
+{
+    "morph_int_str_redux"                 "1"  // custom
+    "morph_str_int_redux"                 "1"  // custom
+    "morph_agi_int_redux"                 "1"  // custom
+    "morph_int_agi_redux"                 "1"  // custom
+    "keeper_of_the_light_innate_redux"    "1"  // custom
+    "night_stalker_innate_redux"          "1"  // custom
+    "skywrath_mage_concussive_break"      "1"  // custom
+
+    "abaddon_aphotic_shield"              "1"
+    "abaddon_borrowed_time"               "1"
+    "abaddon_death_coil"                  "1"
+    "abaddon_frostmourne"                 "1"
+    "abyssal_underlord_atrophy_aura"      "1"
+    "abyssal_underlord_dark_rift"         "1"
+    "abyssal_underlord_firestorm"         "1"
+    "abyssal_underlord_pit_of_malice"     "1"
+    ...
+}
+```
+
+Abilities marked `// custom` are Redux-specific Lua implementations. Unmarked abilities are standard Dota 2 abilities that work as-is.
+
+## Adding an Ability
+
+1. **Define the ability** — either add a KV entry to `npc_abilities_custom.txt` (for a Lua-backed ability) or confirm it already exists in the base game.
+2. **Add the line** to the appropriate bracket in `abilities.kv`:
+   ```
+   "my_new_ability"    "1"
+   ```
+3. **Comment out sub-abilities** if your ability spawns sub-abilities that should not be independently selectable.
+4. **Restart the server** (or reload KVs via the dev console) so the updated file is loaded.
+
+<Tip>
+If an ability crashes the server or has known bugs, comment it out with a descriptive note rather than deleting the line — this makes it easy to re-enable once the bug is fixed.
+</Tip>

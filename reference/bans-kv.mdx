@@ -1,0 +1,172 @@
+---
+title: bans.kv
+description: Ability combination bans, category lists, and multicast exclusions.
+---
+
+`bans.kv` controls which ability combinations are forbidden and which abilities are excluded from mechanics like Multicast or Spell Echo. Most banned pairings are now handled by **ReduxBans flags** set directly on the ability data, but `bans.kv` covers structural rules that cannot be expressed as a simple per-ability flag.
+
+## Top-Level Blocks
+
+| Block | Purpose |
+|---|---|
+| `BannedTowerCombinations` | Pairs of tower abilities that cannot coexist on the same tower. |
+| `Categories` | Named groups of spells used as reusable references inside `BannedGroups`. |
+| `BannedGroups` | Numbered groups where no two abilities from the same group can be selected together. |
+| `BannedTowerGroups` | Same concept as `BannedGroups`, but for tower abilities. |
+| `noMulticast` | Abilities that are explicitly excluded from Ogre Magi Multicast triggering. |
+| `noSpellEcho` | Abilities that Spell Echo will never echo. |
+| `noWitchcraft` | Abilities that will not have their cooldowns lowered by the Witchcraft cooldown-reduction patch. |
+
+---
+
+## Categories
+
+Categories define reusable spell groups that can be referenced inside other groups using value `"2"` (as opposed to `"1"` which references a single spell).
+
+```
+"Categories"
+{
+    "SpammableSpells"
+    {
+        // Include the ToggleSpells list by reference
+        "ToggleSpells"                      "2"
+
+        // Individual spammable abilities
+        "abaddon_aphotic_shield"            "1"
+        "abaddon_death_coil"                "1"
+        "antimage_blink"                    "1"
+        "bristleback_quill_spray"           "1"
+        ...
+    }
+
+    "ToggleSpells"
+    {
+        "pudge_rot"                         "1"  // toggle
+        "leshrac_pulse_nova"                "1"  // toggle and low cd
+        "morph_agi_int_redux"               "1"  // toggle
+        "medusa_split_shot"                 "1"  // toggle
+        ...
+    }
+}
+```
+
+<Warning>
+Do not create recursive category references. The ban system has no cycle detection — a category that references itself (directly or indirectly) will loop indefinitely.
+</Warning>
+
+---
+
+## BannedGroups
+
+Numbered groups list abilities that are mutually exclusive — a player cannot hold more than one ability from the same group.
+
+```
+"BannedGroups"
+{
+    // One-hit combo group
+    "1"
+    {
+        "brewmaster_drunken_brawler"        "1"
+        "earthshaker_enchant_totem"         "1"
+        "kunkka_tidebringer"                "1"
+        "monkey_king_boundless_strike"      "1"
+        "ursa_overpower"                    "1"
+        "weaver_geminate_attack"            "1"
+        ...
+    }
+
+    // Mega range group
+    "2"
+    {
+        "dragon_knight_elder_dragon_form"   "1"
+        "sniper_take_aim"                   "1"
+        "templar_assassin_psi_blades"       "1"
+        "terrorblade_metamorphosis"         "1"
+        "winter_wyvern_arctic_burn"         "1"
+    }
+
+    // Bash group
+    "3"
+    {
+        "faceless_void_time_lock"           "1"
+        "slardar_bash"                      "1"
+        "spirit_breaker_greater_bash"       "1"
+        ...
+    }
+
+    // Cooldown manipulation group
+    "5"
+    {
+        "tinker_rearm"                      "1"
+        "death_prophet_witchcraft"          "1"
+        "keeper_of_the_light_chakra_magic"  "1"
+        "master_magic"                      "1"
+        ...
+    }
+}
+```
+
+---
+
+## ReduxBans Flags vs. bans.kv Entries
+
+Redux uses two complementary systems for banning ability combinations:
+
+| System | Where | How | Typical Use |
+|---|---|---|---|
+| **ReduxBans flags** | On the ability's KV data block (`npc_abilities_custom.txt` or override files) | A `ReduxBans` key lists ability names that this ability cannot be combined with | Simple pairwise "troll combo" bans between two specific abilities |
+| **bans.kv entries** | In `bans.kv` under `BannedGroups` or `Categories` | Groups of 3+ mutually exclusive abilities, or category-level rules | Complex group bans, mechanic exclusions (multicast, spell echo), spammable-spell enforcement |
+
+### ReduxBans example (in ability data)
+
+```
+"lifebreak_redux"
+{
+    ...
+    "ReduxBans"
+    {
+        "spectre_dispersion"    "1"
+    }
+}
+```
+
+This bans only the specific pair `lifebreak_redux` + `spectre_dispersion`.
+
+### bans.kv example (group ban)
+
+Group `1` (the one-hit combo group) bans any combination of crit/attack-multiplier abilities. Adding a new ability to this group automatically makes it mutually exclusive with every other ability already in the group — no per-pair entries are needed.
+
+---
+
+## noMulticast and noSpellEcho
+
+These lists prevent the Ogre Magi Multicast and Spell Echo mechanics from triggering on abilities that would behave incorrectly when cast multiple times:
+
+```
+"noMulticast"
+{
+    "arc_warden_tempest_double"          "1"  // bugs out
+    "alchemist_unstable_concoction_throw" "1" // wastes multicast cd
+    "morphling_replicate"               "1"  // bugs out
+    ...
+}
+
+"noSpellEcho"
+{
+    "arc_warden_tempest_double"          "1"
+    "antimage_blink"                     "1"
+    "furion_teleportation"               "1"
+    ...
+}
+```
+
+## noWitchcraft
+
+Abilities listed here will not have their cooldowns lowered by the Witchcraft cooldown-reduction patch applied globally by Redux:
+
+```
+"noWitchcraft"
+{
+    "chi_strike"    "1"
+}
+```

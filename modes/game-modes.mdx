@@ -1,0 +1,133 @@
+---
+title: "Game modes"
+description: "The different ways to play Legends of Dota Redux, from standard drafting to chaotic all-random."
+keywords: ["game modes", "all pick", "all random", "single player", "10v10", "mirror draft"]
+---
+
+Legends of Dota Redux supports several map variants. Each map locks in a different set of default settings and voting rules. You choose your map when lobbying in the Dota 2 custom game browser.
+
+<CardGroup cols={2}>
+
+<Card title="Classic" icon="shield" href="#classic">
+  The default 5v5 experience. Single Draft mode with balanced settings and a pre-game voting phase.
+</Card>
+
+<Card title="All Pick" icon="hand" href="#all-pick">
+  Every player freely picks any hero and any abilities. Full control, no restrictions.
+</Card>
+
+<Card title="All Random" icon="shuffle" href="#all-random">
+  Heroes and abilities are assigned randomly. Review your build before the match begins.
+</Card>
+
+<Card title="Single Player" icon="user" href="#single-player">
+  Solo mode against bots. Cheat commands are available without a vote, and single-player abilities are unlocked.
+</Card>
+
+<Card title="Mirror Draft" icon="copy" href="#mirror-draft">
+  Both teams draft from the same pool of heroes, creating symmetric matchups.
+</Card>
+
+<Card title="10 vs 10" icon="users" href="#10-vs-10">
+  Expanded team size for large lobbies. Up to ten players per side.
+</Card>
+
+<Card title="3 vs 3" icon="swords" href="#3-vs-3">
+  Compact three-player teams with balance mode enabled by default.
+</Card>
+
+<Card title="All Allowed" icon="infinity" href="#all-allowed">
+  The permissive sandbox map. OP abilities, shared XP, and lower voting thresholds.
+</Card>
+
+</CardGroup>
+
+---
+
+## Classic
+
+The `classic` map is the default recommended map for most lobbies. It uses **Single Draft** (gamemode 5), meaning each player is offered a limited set of heroes to choose from. Settings are balanced for competitive play:
+
+- Banning phase enabled (3 ability bans, 2 hero bans per team)
+- Respawn time at 35% of base
+- Max hero level capped at 100
+- Passive skill limit enforced
+- Pre-game option voting enabled for the host
+
+<Note>
+  The `classic` map replaced the old `standard` map as of v10.1.
+</Note>
+
+---
+
+## All Pick
+
+The `all_pick` map (and its faster variant `all_pick_fast`) sets **gamemode 1**, allowing every player to pick any hero and any combination of abilities. There are no per-hero draft restrictions.
+
+`all_pick_fast` applies a shorter option selection timer, letting players jump into the game more quickly.
+
+---
+
+## All Random
+
+The `all_random` map sets **gamemode 4**. Instead of manually choosing abilities, the server randomly assigns a full hero build for each player. After generation you have **120 seconds** (`randomSelectionTime`) to review your random build before the game starts.
+
+You can still swap individual abilities during the review window if the option is enabled.
+
+---
+
+## Single Player
+
+When you launch a solo lobby (or use the Dota 2 single-player test mode), the game automatically detects single-player mode (`util:isSinglePlayerMode()`) and:
+
+- Forces bots onto your team so the lobby can fill
+- Unlocks all cheat commands without requiring a vote
+- Enables single-player-only abilities (marked with the SP tag in the ability list)
+- Sets `lodOptionBanningUseBanList` to `0`, lifting the standard single-player ability ban
+
+This is the best mode for testing builds or exploring abilities.
+
+---
+
+## Mirror Draft
+
+The `mirror_draft` map sets **gamemode 3**. Both teams receive identical hero pools and must draft from the same selection, producing symmetric ability matchups that reward execution over picking.
+
+---
+
+## 10 vs 10
+
+The `10_vs_10` map raises both team size caps to ten players:
+
+```lua
+GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_GOODGUYS, 10)
+GameRules:SetCustomGameTeamMaxPlayers(DOTA_TEAM_BADGUYS, 10)
+```
+
+Bot slots are also expanded to fill both sides if human players are absent (`lodOptionBotsRadiant` and `lodOptionBotsDire` both default to `10`).
+
+---
+
+## 3 vs 3
+
+The `3_vs_3` map reduces each team to three players and enables **balance mode** by default. It also sets `lodOptionBanningBalanceMode` to enforce that the point budget accounts for the smaller roster.
+
+---
+
+## All Allowed
+
+The `all_allowed` map is an anything-goes sandbox. Compared to other maps it:
+
+| Setting | Value |
+|---|---|
+| OP abilities | Enabled |
+| Shared XP | Enabled |
+| Starting level | 4 |
+| Respawn time | 35% |
+| Max hero level | 100 |
+| Strong towers | Enabled |
+| Anti-bash | Enabled |
+| Anti-rat voting threshold | 50% (not 100%) |
+| Double creeps voting threshold | 70% (not 100%) |
+
+Because this map allows more powerful builds by design, several in-game votes require a lower percentage of players to pass. See [Voting](/modes/voting) for the full threshold table.

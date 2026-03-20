@@ -1,0 +1,324 @@
+---
+title: Skill Builds API
+description: Endpoints for creating, retrieving, voting on, and favoriting skill builds.
+---
+
+Skill builds are community-shareable ability loadouts. Each build stores the chosen hero, attribute, abilities, a title, description, and tags. Votes and favorites are tracked per Steam ID.
+
+All `POST` endpoints require the `Auth-Key` header. See [Server API Overview](/reference/server-api) for authentication details.
+
+---
+
+## POST /createSkillBuild
+
+Persists a new skill build to the database. Votes are initialised to zero and a `Created` timestamp is set automatically.
+
+### Request
+
+```http
+POST /createSkillBuild
+Auth-Key: <LodAuthKey>
+Content-Type: application/x-www-form-urlencoded
+
+data={...}
+```
+
+<ParamField body="data" type="string" required>
+  JSON-encoded skill build object.
+
+  <Expandable title="data fields">
+    <ParamField body="steamID" type="string" required>
+      64-bit Steam ID of the build author.
+    </ParamField>
+    <ParamField body="heroName" type="string" required>
+      Internal hero name (e.g. `npc_dota_hero_pudge`).
+    </ParamField>
+    <ParamField body="attribute" type="string" required>
+      Primary attribute: `strength`, `agility`, or `intelligence`.
+    </ParamField>
+    <ParamField body="abilities" type="string[]" required>
+      Array of ability names included in the build.
+    </ParamField>
+    <ParamField body="title" type="string" required>
+      Human-readable name for the build.
+    </ParamField>
+    <ParamField body="description" type="string">
+      Optional longer description of the build.
+    </ParamField>
+    <ParamField body="tags" type="string[]">
+      Optional array of tag strings for filtering.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request body
+
+```json
+{
+  "steamID": "76561197966504115",
+  "heroName": "npc_dota_hero_pudge",
+  "attribute": "strength",
+  "abilities": ["pudge_meat_hook", "pudge_rot", "pudge_flesh_heap", "pudge_dismember"],
+  "title": "Classic Pudge",
+  "description": "Standard hook-and-rot build.",
+  "tags": ["hook", "sustain"]
+}
+```
+
+### Response
+
+<ResponseField name="success" type="boolean">
+  `true` if the build was created successfully.
+</ResponseField>
+<ResponseField name="error" type="string">
+  Error message string. Empty on success.
+</ResponseField>
+
+```json
+{ "success": true, "error": "" }
+```
+
+---
+
+## POST /removeSkillBuild
+
+Deletes a skill build by ID. All `UserFavorites` rows referencing the build are deleted first.
+
+### Request
+
+```http
+POST /removeSkillBuild
+Auth-Key: <LodAuthKey>
+Content-Type: application/x-www-form-urlencoded
+
+data={...}
+```
+
+<ParamField body="data" type="string" required>
+  JSON-encoded removal request.
+
+  <Expandable title="data fields">
+    <ParamField body="buildId" type="integer" required>
+      Database ID of the skill build to delete.
+    </ParamField>
+    <ParamField body="steamId" type="string" required>
+      Steam ID of the requesting player.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request body
+
+```json
+{ "buildId": 42, "steamId": "76561197966504115" }
+```
+
+### Response
+
+Returns HTTP 200 with an empty body on success. Returns HTTP 401 if authentication fails.
+
+---
+
+## GET /getSkillBuilds
+
+Returns an ordered, paginated list of all skill builds. Each build includes aggregated up-vote and down-vote Steam ID lists.
+
+### Request
+
+```http
+GET /getSkillBuilds?skip=0
+```
+
+<ParamField query="skip" type="integer" required>
+  Number of records to skip (0-based offset for pagination).
+</ParamField>
+
+### Response
+
+Array of skill build objects ordered by creation date (oldest first).
+
+<ResponseField name="id" type="integer">
+  Database primary key.
+</ResponseField>
+<ResponseField name="abilities" type="string[]">
+  Ability names in the build.
+</ResponseField>
+<ResponseField name="attribute" type="string">
+  Primary attribute (`strength`, `agility`, `intelligence`).
+</ResponseField>
+<ResponseField name="description" type="string">
+  Build description.
+</ResponseField>
+<ResponseField name="heroName" type="string">
+  Internal hero name.
+</ResponseField>
+<ResponseField name="steamID" type="string">
+  Author's Steam ID.
+</ResponseField>
+<ResponseField name="tags" type="string[]">
+  Tag strings.
+</ResponseField>
+<ResponseField name="title" type="string">
+  Build title.
+</ResponseField>
+<ResponseField name="votes_Up" type="integer">
+  Total upvote count.
+</ResponseField>
+<ResponseField name="votes_Down" type="integer">
+  Total downvote count.
+</ResponseField>
+<ResponseField name="upVoteIds" type="string[]">
+  Steam IDs of players who upvoted.
+</ResponseField>
+<ResponseField name="downVoteIds" type="string[]">
+  Steam IDs of players who downvoted.
+</ResponseField>
+<ResponseField name="created" type="string">
+  ISO 8601 creation timestamp.
+</ResponseField>
+
+### Example response
+
+```json
+[
+  {
+    "id": 1,
+    "abilities": ["pudge_meat_hook", "pudge_rot", "pudge_flesh_heap", "pudge_dismember"],
+    "attribute": "strength",
+    "description": "Standard hook-and-rot build.",
+    "heroName": "npc_dota_hero_pudge",
+    "steamID": "76561197966504115",
+    "tags": ["hook", "sustain"],
+    "title": "Classic Pudge",
+    "votes_Up": 5,
+    "votes_Down": 1,
+    "upVoteIds": ["76561198000000001", "76561198000000002"],
+    "downVoteIds": ["76561198000000003"],
+    "created": "2024-01-15T10:30:00"
+  }
+]
+```
+
+---
+
+## POST /setFavoriteSkillBuild
+
+Adds or removes a skill build from a player's favorites list.
+
+### Request
+
+```http
+POST /setFavoriteSkillBuild
+Auth-Key: <LodAuthKey>
+Content-Type: application/x-www-form-urlencoded
+
+data={...}
+```
+
+<ParamField body="data" type="string" required>
+  JSON-encoded favorite action.
+
+  <Expandable title="data fields">
+    <ParamField body="fav" type="integer" required>
+      `1` to add to favorites, `0` to remove.
+    </ParamField>
+    <ParamField body="id" type="integer" required>
+      Database ID of the skill build.
+    </ParamField>
+    <ParamField body="steamID" type="string" required>
+      64-bit Steam ID of the player.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request bodies
+
+```json
+// Add to favorites
+{ "fav": 1, "id": 42, "steamID": "76561197966504115" }
+
+// Remove from favorites
+{ "fav": 0, "id": 42, "steamID": "76561197966504115" }
+```
+
+### Response
+
+HTTP 200 with an empty body on success.
+
+---
+
+## POST /voteSkillBuild
+
+Casts an upvote or downvote on a skill build. Each Steam ID may only vote once per build — a second vote from the same player returns HTTP 400.
+
+### Request
+
+```http
+POST /voteSkillBuild
+Auth-Key: <LodAuthKey>
+Content-Type: application/x-www-form-urlencoded
+
+data={...}
+```
+
+<ParamField body="data" type="string" required>
+  JSON-encoded vote action.
+
+  <Expandable title="data fields">
+    <ParamField body="id" type="integer" required>
+      Database ID of the skill build to vote on.
+    </ParamField>
+    <ParamField body="steamID" type="string" required>
+      64-bit Steam ID of the voter.
+    </ParamField>
+    <ParamField body="vote" type="integer" required>
+      `1` for upvote, `0` for downvote.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request bodies
+
+```json
+// Upvote
+{ "id": 2, "steamID": "76561197966504115", "vote": 1 }
+
+// Downvote
+{ "id": 2, "steamID": "76561197966504115", "vote": 0 }
+```
+
+### Response
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Vote recorded successfully. |
+| `400 Bad Request` | Player has already voted on this build. |
+| `401 Unauthorized` | Missing or invalid `Auth-Key` header. |
+| `404 Not Found` | No skill build with the specified `id`. |
+
+---
+
+## GET /getFavoriteSkillBuilds
+
+Returns the list of skill build IDs that a player has favorited.
+
+### Request
+
+```http
+GET /getFavoriteSkillBuilds?steamId=76561197966504115&playerId=76561197966504115
+```
+
+<ParamField query="steamId" type="string" required>
+  64-bit Steam ID of the player whose favorites are being retrieved.
+</ParamField>
+<ParamField query="playerId" type="string">
+  Alias for `steamId`. Accepted but currently unused by the query logic.
+</ParamField>
+
+### Response
+
+Array of integer build IDs.
+
+```json
+[1, 5, 23, 44]
+```

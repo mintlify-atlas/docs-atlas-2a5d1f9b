@@ -1,0 +1,139 @@
+---
+title: Mutators
+description: Optional game modifiers that alter how the match plays. Mutators are selected during the option phase and apply globally for the entire game.
+---
+
+Mutators are server-side modifiers that change the rules of the match for all players. They are chosen during the option voting and selection phases. Most mutators apply a permanent modifier to every hero; some affect the map environment instead.
+
+<Note>
+Some mutators are restricted to Patreon supporters or are only available on certain map variants. The advanced options menu shows which mutators are available in your current lobby.
+</Note>
+
+## Available mutators
+
+<AccordionGroup>
+  <Accordion title="Vampirism">
+    **Modifier:** `modifier_vampirism_mutator`
+
+    Heroes gain lifesteal and bonus movement speed during the **night** cycle, but suffer a health regen penalty during the **day**.
+
+    | Stat | Day | Night |
+    |------|-----|-------|
+    | Health regen | −1% | +1% |
+    | Lifesteal | 0% | 20% |
+    | Move speed | +0% | +10% |
+    | Mana regen | +0% | +1% |
+
+    A notification is displayed to each player when the day/night cycle changes. This mutator is the mirror-opposite of the Hunter mutator.
+  </Accordion>
+
+  <Accordion title="Hunter">
+    **Modifier:** `modifier_hunter_mutator`
+
+    The inverse of Vampirism. Heroes gain lifesteal and bonus movement speed during the **day** cycle and suffer penalties at **night**.
+
+    | Stat | Day | Night |
+    |------|-----|-------|
+    | Health regen | +1% | −1% |
+    | Lifesteal | 20% | 0% |
+    | Move speed | +10% | +0% |
+    | Mana regen | +1% | +0% |
+
+    Notifications alert each player when the cycle flips. Pair with Vision-heavy builds to maximise the daytime power window.
+  </Accordion>
+
+  <Accordion title="Cooldown Reduction">
+    **Modifier:** `modifier_cooldown_reduction_mutator`
+
+    All heroes permanently receive a **50% cooldown reduction** and **0.75% mana regen** bonus. The modifier is hidden (no buff icon is shown).
+
+    This dramatically increases the pace of teamfights and rewards builds that rely on repeatedly casting spells.
+  </Accordion>
+
+  <Accordion title="Death Explosion">
+    **Modifier:** `modifier_death_explosion_mutator`
+
+    When a hero dies, a delayed explosion triggers roughly 1 second later. The explosion deals magical damage and knocks back nearby units.
+
+    | Property | Value |
+    |----------|-------|
+    | Base damage | 150 |
+    | Damage per hero level | +25 |
+    | Radius | 300 units |
+    | Knockback distance | 200 + (10 × level) units |
+    | Knockback height | 20 + (10 × level) units |
+
+    The effect uses the Techies land-mine explosion particle and sound. Trees are destroyed within the radius.
+  </Accordion>
+
+  <Accordion title="Drop Gold Bag">
+    **Modifier:** `modifier_drop_gold_bag_mutator`
+
+    When a hero dies they drop a gold bag on the ground. Nearby players can pick it up for a gold bonus. The bag behaviour is implemented directly in `pregame.lua` (`Pregame:DropGoldOnDeath()`) rather than the standalone modifier file, which is kept for reference.
+
+    This mutator encourages aggressive play and makes kills more economically impactful than in standard Dota 2.
+  </Accordion>
+
+  <Accordion title="Kill Streak">
+    **Modifier:** `modifier_killstreak_mutator_redux`
+
+    Each hero kill you get adds a stack. Each stack increases both your **outgoing damage** and your **incoming damage** by 20%, and slightly increases your model scale.
+
+    | Per stack | Value |
+    |-----------|-------|
+    | Outgoing damage bonus | +20% |
+    | Incoming damage penalty | +20% |
+    | Model scale | +1% per 20 stacks |
+
+    Stacks reset to zero on death. The mutator creates a high-risk, high-reward dynamic: kill streaks make you a glass-cannon target worth taking down.
+  </Accordion>
+
+  <Accordion title="No Health Bar">
+    **Modifier:** `modifier_no_healthbar_mutator`
+
+    Removes the health bar from all heroes. Enemy HP pools are completely hidden, making it impossible to see how close a target is to death without committing to the fight.
+
+    This mutator significantly increases the skill floor for decision-making during engagements.
+  </Accordion>
+
+  <Accordion title="Random Spell">
+    **Modifier:** `modifier_random_spell_mutator`
+
+    An invisible, invulnerable, and true-sight-immune unit is spawned that periodically casts a random spell on all heroes every **60 seconds**. Five seconds before each cast a global notification shows which spell is incoming.
+
+    The spell pool includes: Retro Disarm, Surge, Ion Shell, Voodoo, False Promise, Walrus Kick, Light Blade, Chain Frost, Sprout, Homing Missile, Mana Leak, Rupture, Lightning Bolt, Sun Strike, Torrent, Cold Feet, Glimpse, and Telekinesis.
+
+    Spell levels scale with game time (roughly 1 level per 5 minutes).
+  </Accordion>
+
+  <Accordion title="Resurrection">
+    **Modifier:** `modifier_resurrection_mutator`
+
+    Grants heroes a resurrection mechanic on death. The specific implementation varies by version — the core tombstone-drop logic is present in the modifier file but is currently stubbed out pending rebalancing.
+  </Accordion>
+
+  <Accordion title="Super Runes">
+    **Modifiers:** `modifier_rune_doubledamage_mutated_redux`, `modifier_rune_arcane_mutated_redux`
+
+    Runes that spawn on the map are upgraded to super versions:
+
+    - **Super Double Damage** — grants **+200% base damage** instead of the standard bonus.
+    - **Super Arcane** — grants **60% cooldown reduction** and **60% mana cost reduction** for its duration.
+
+    Super Runes make rune control a much higher-priority objective and can swing teamfights dramatically.
+  </Accordion>
+
+  <Accordion title="Random Lane Creep">
+    **Modifier:** `modifier_random_lane_creep_mutator_ai` / `modifier_random_lane_creep_spawner_mutator`
+
+    Lane creeps are replaced with or supplemented by randomised creep types. Creep compositions vary each wave, keeping the laning phase unpredictable.
+  </Accordion>
+
+  <Accordion title="Free Creep Ability">
+    Added in version 11.2. All lane creeps receive a free ability from the ability pool, giving them additional combat power. Works alongside the creep power system — if both this mutator and creep extra ability are enabled simultaneously, ensure the correct interaction flag is set to avoid disabling the creep power mutator.
+  </Accordion>
+
+  <Accordion title="Explode on Death">
+    Added in version 11.2. A separate mutator variant of the death explosion effect, available as a distinct option in the advanced settings panel.
+  </Accordion>
+</AccordionGroup>

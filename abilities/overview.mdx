@@ -1,0 +1,50 @@
+---
+title: Abilities Overview
+description: How the ability system works in Legends of Dota Redux — sources, categories, and the skill picker.
+---
+
+Legends of Dota Redux lets players build heroes from a massive shared pool of abilities drawn from across Dota 2, custom creations, and imported ability packs. Instead of playing a fixed hero kit, you choose any combination of active and passive skills in the pre-game skill picker.
+
+## Where abilities come from
+
+The pool is assembled from several sources:
+
+- **Standard Dota 2 abilities** — virtually every active and passive ability from the full hero roster, minus a small number that crash the server or have no effect when used outside their original hero.
+- **Custom Redux abilities** — original skills written specifically for this game mode (Flesh Heap variants, Lingering Souls, Arcane Mastery, Crater, Mana Laser, Side Gunner Redux, and more).
+- **Dota Imba** (`imba_*`) — enhanced versions of every hero's abilities with amplified effects.
+- **Imported packs** — abilities from Angel Arena Reborn, Angel Arena Blackstar, Overflow, OneShot OneKill, Life in Arena, Holdout, Resurgence, OAA, Dusk, Retro Dota, EBF, and others.
+- **Neutral creep abilities** — abilities belonging to neutral units, roshan, spirit bears, warlock golems, and more, grouped into curated pick groups.
+
+## How the skill picker works
+
+At the start of each game, players open the skill picker and select their abilities up to the configured slot limit. The list is divided into **brackets** (categories) that determine which abilities appear together and under what conditions they are available.
+
+Certain abilities are restricted:
+
+- **Single-player abilities** are hidden from normal play and only appear when the single-player option is enabled.
+- **OP abilities** live in a separate pool and require the OP ability option to be turned on before they show up.
+- **Troll combos** are pairs or groups of abilities that are too strong in combination — the game prevents picking both at once.
+
+## How many abilities are there?
+
+The `abilities.kv` file that drives the picker contains **over 3,300 lines** of ability entries across all brackets. The exact selectable count varies by game options, but players reliably have access to hundreds of distinct skills at any given time.
+
+## Explore further
+
+<CardGroup cols={2}>
+  <Card title="Categories" href="/abilities/categories">
+    A breakdown of every bracket in the ability list — main pool, neutral creep groups, custom packs, OP, and single-player.
+  </Card>
+  <Card title="Troll Combos" href="/abilities/troll-combos">
+    How the ban system works and which combinations are blocked for being broken.
+  </Card>
+  <Card title="OP Abilities" href="/abilities/op-abilities">
+    The overpowered ability pool and how to enable it.
+  </Card>
+  <Card title="Custom Abilities" href="/abilities/custom-abilities">
+    Redux-exclusive skills and imported ability packs.
+  </Card>
+  <Card title="Hero Perks" href="/abilities/hero-perks">
+    Passive bonuses that unlock when you pick abilities tied to a specific hero.
+  </Card>
+</CardGroup>

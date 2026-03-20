@@ -1,0 +1,128 @@
+---
+title: "Bot support"
+description: "How to set up bot opponents or teammates in Legends of Dota Redux, including difficulty settings and ability selection."
+keywords: ["bots", "bot difficulty", "AI", "bot skills", "single player", "bot support", "pudge bot"]
+---
+
+Legends of Dota Redux uses Dota 2's native bot AI, extended with custom ability selection logic. You can add bots to either team from the advanced options menu before the game starts.
+
+---
+
+## Setting up a bot game
+
+<Steps>
+  <Step title="Choose your map">
+    Open Legends of Dota Redux in the Dota 2 custom game browser and create a lobby. For a solo session, use the **single-player** launch option — bots are forced automatically. For a hosted lobby, use any standard map (e.g., `classic` or `dota`).
+
+    <Tip>
+      The `dota` (bot match) map pre-configures 5 bots per side (`lodOptionBotsRadiant = 5`, `lodOptionBotsDire = 5`) and is the easiest way to get a full 5v5 bot game.
+    </Tip>
+  </Step>
+
+  <Step title="Configure bot counts">
+    In the **advanced options** menu, open the **Bot settings** section and set the number of bots for each team using `lodOptionBotsRadiant` and `lodOptionBotsDire`. You can mix human and bot players on the same team.
+  </Step>
+
+  <Step title="Set difficulty">
+    Set the difficulty for each team independently:
+
+    | Level | Value | Description |
+    |---|---|---|
+    | Passive | 1 | Bots do not attack or use abilities aggressively. |
+    | Easy | 2 | **Default.** Bots play at a low skill level. |
+    | Medium | 3 | Moderate aggression and itemisation. |
+    | Hard | 4 | Competent laning and rotations. |
+    | Unfair | 5 | Maximum difficulty with stat advantages. |
+
+    `lodOptionBotsRadiantDiff` controls Radiant bots; `lodOptionBotsDireDiff` controls Dire bots. Both default to **Medium** (changed from Unfair in v11.1).
+
+    You can also enable **Random Individual** difficulty (`lodOptionBotsDiffRandom`), which assigns each bot a random difficulty level independently.
+  </Step>
+
+  <Step title="Choose extra bot options">
+    Configure additional behaviour before locking options:
+
+    - **Duplicate Heroes** (`lodOptionBotsUnique = 1`) — allows multiple bots to share the same hero base.
+    - **Same Hero for All Bots** (`lodOptionBotsSameHero = 1`) — forces every bot onto the same hero. Combine with the **Random** option to let the game pick one hero at random.
+    - **Stupify** (`lodOptionBotsStupid = 1`) — bots stand idle and will not attack, useful for testing builds.
+    - **Bonus Points** (`lodOptionBotsBonusPoints = 1`) — gives bots extra balance mode points so they can pick stronger ability sets (on by default).
+    - **Unique Skills** (`lodOptionBotsUniqueSkills = 1`) — prevents bots from duplicating abilities across their team (on by default).
+  </Step>
+
+  <Step title="Lock options and pick abilities">
+    Lock the option selection phase. Bots will be assigned heroes and abilities automatically using `bot_skills.kv`. Once the picking phase ends, the game starts with bots active.
+  </Step>
+</Steps>
+
+---
+
+## How bots select abilities
+
+Bots do not use the player ability picker. Instead, each bot hero has a **priority-ordered ability list** defined in `scripts/kv/bot_skills.kv`. The game iterates the list from top (priority 1) to bottom and assigns the first available abilities that fit the slot budget.
+
+Example entry for Axe:
+
+```kv
+"npc_dota_hero_axe"
+{
+    "shredder_reactive_armor"       "1"
+    "alchemist_chemical_rage"       "2"
+    "abaddon_borrowed_time"         "3"
+    "spectre_dispersion"            "4"
+    "necrolyte_heartstopper_aura"   "5"
+    "tidehunter_kraken_shell"       "6"
+    "skeleton_king_reincarnation"   "7"
+    ...
+}
+```
+
+Each hero has up to 20 prioritised abilities. The bot picks abilities in order until all slots are filled. If `lodOptionBotsUniqueSkills` is enabled, abilities already taken by another bot on the same team are skipped.
+
+<Note>
+  `bot_skills.kv` contains entries for many heroes including Axe, Bristleback, Skeleton King (Wraith King), and others. If a hero has no entry in the file, the bot falls back to the hero's default abilities.
+</Note>
+
+---
+
+## Changing difficulty mid-game
+
+If cheat mode is active (or you are in single-player mode), you can change a specific bot's difficulty at runtime:
+
+```
+-dif <level> #<playerID>
+```
+
+| Argument | Description |
+|---|---|
+| `<level>` | Difficulty number (1–5, matching the table above). |
+| `#<playerID>` | The player ID of the bot. Use `-pid` first to list all player IDs. |
+
+Example — set player 3 to Hard difficulty:
+
+```
+-dif 4 #3
+```
+
+You can also check or force the bot AI phase:
+
+```
+-bot mode    -- Shows whether bots are in early-game or late-game mode
+-bot switch  -- Toggles between early-game and late-game bot behaviour (cheat mode required)
+```
+
+---
+
+## Changelog highlights
+
+Key bot-related changes from the project history:
+
+| Version | Change |
+|---|---|
+| v11.1 | Bot Difficulty Mutator added. Default difficulty changed from Unfair to Medium. |
+| v11.1 | Team-specific difficulty added to the advanced options menu. |
+| v11.1 | Option to allow bots to use the same hero (Duplicate Heroes) added. |
+| v11.1 | Pudge bot enabled. |
+| v11.1 | Same Bot Mutator added (force all bots to one hero). |
+| v11.1 | Random Individual difficulty option added (every bot gets a random difficulty). |
+| v11.2 | Bots: Allow Duplicates, Bots Stupify, and All bots same hero moved to advanced options (removed from main screen). |
+| v11 | Fixed bots receiving blank "Generic" abilities. |

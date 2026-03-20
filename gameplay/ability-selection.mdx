@@ -1,0 +1,53 @@
+---
+title: Ability selection
+description: How players browse, filter, and pick abilities during the selection phase, including banning, Balance Mode, and troll-combo detection.
+---
+
+Ability selection is the heart of Legends of Dota Redux. During `PHASE_SELECTION` (and the equivalent draft or random phases) each player assembles a build by choosing abilities from the full Dota 2 ability pool.
+
+## The ability pool
+
+All selectable abilities are defined in `scripts/kv/abilities.kv`. The file divides abilities into named **category brackets** such as nukes, stuns, passives, heals, and ultimates. The pick UI reads these categories and lets players filter the list so they can quickly find what they want.
+
+Ability metadata stored alongside each entry controls:
+
+- Which hero originally owns the ability
+- Whether it is an ultimate, a passive, or an active
+- `ReduxBans` flags that mark troll-combo partners (see below)
+- `ReduxPerks` tags that link the ability to hero-specific perk categories
+
+Dependency abilities are declared in `scripts/kv/abilityDeps.kv`. If you pick an ability that requires a secondary ability, the server grants that secondary ability automatically at no cost to your slot count.
+
+## Banning phase
+
+Before selection begins the game enters `PHASE_BANNING`. Each player receives a limited number of bans (configured by the option vote — typically 2–3 ability bans and 1–2 hero bans). Banned abilities and heroes are removed from the pool for the remainder of the match.
+
+A global invisibility ban can also be enabled during option voting. When active, all abilities flagged as invisibility sources are removed from the pool.
+
+Special ban combinations are stored in `scripts/kv/bans.kv`. Most per-ability restrictions now use `ReduxBans` flags in the ability data itself rather than this file.
+
+## Troll-combo detection
+
+The server inspects every player's build for known problematic ability combinations — interactions that are so dominant or disruptive that they break the game. These are flagged via `ReduxBans` groups in the ability data. If a player attempts to select an ability that would form a banned combination with something already in their build, the UI rejects the pick and highlights the conflict.
+
+Examples of detected troll combos include abilities with no theoretical limit (Flesh Heap, Fruits, Tomes, Survival), certain stacking passives, and ultimates that trivialise the game when combined with specific supports.
+
+## Balance Mode
+
+Balance Mode is an optional ruleset enabled during option voting. When active, every ability in the pool carries a **point cost** and each player has a budget of **120 points** to spend across their entire build (`BALANCE_MODE_POINTS = 120` in `constants.lua`).
+
+Powerful or high-impact abilities cost more points. This prevents builds that stack only top-tier spells and encourages creative combinations across different power tiers.
+
+<Tip>
+If you are struggling to reach 120 points, look for strong low-cost passives or utility abilities to round out your build rather than stacking expensive ultimates.
+</Tip>
+
+## All Random mode
+
+When All Random is selected the game skips interactive selection and goes straight to `PHASE_RANDOM_SELECTION`. The server picks a hero and a random set of abilities for each player. The `PHASE_REVIEW` phase then gives everyone a moment to examine their assigned build before heroes spawn.
+
+Players can optionally vote mid-game for the **Ingame Hero Builder** (`-enablebuilder`) to adjust their build after seeing how it performs.
+
+## Ability slot limits
+
+Each hero build has a fixed number of ability slots determined by the game options. Typically players fill four standard ability slots plus one ultimate slot, but the exact count can be adjusted in the advanced options. Passive abilities count against the passive limit if one is configured.

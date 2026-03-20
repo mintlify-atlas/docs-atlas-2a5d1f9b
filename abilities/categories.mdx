@@ -1,0 +1,97 @@
+---
+title: Ability Categories
+description: The bracket system that organises every ability in the skill picker.
+---
+
+All abilities in Legends of Dota Redux are organised into **brackets** inside `abilities.kv`. Each bracket controls which abilities appear together in the pick screen, what rules apply to them, and whether they require special game options to unlock.
+
+The top-level structure looks like this:
+
+```
+Abilities
+└── skills
+    ├── main          ← standard pool, always available
+    ├── neutral       ← creep & neutral ability groups
+    ├── custom        ← Redux-specific custom abilities
+    ├── imba          ← Dota Imba enhanced versions
+    ├── superop       ← OP / single-player restricted abilities
+    └── heroToSkillMap  ← hero-specific bonus abilities
+```
+
+## Brackets at a glance
+
+<AccordionGroup>
+  <Accordion title="main — Standard ability pool">
+    The largest bracket. Contains essentially every standard Dota 2 hero ability that works correctly in a custom game context. Abilities in this bracket are always visible in the picker under normal settings.
+
+    Includes both original (`axe_culling_blade`) and custom Redux overrides (`bloodseeker_thirst_lod`, `ursa_fury_swipes_lod`, `ogre_magi_multicast_lod`). Abilities that crash the server or have no effect when used off-hero are commented out.
+  </Accordion>
+
+  <Accordion title="neutral — Creep and neutral unit abilities">
+    Neutral abilities are subdivided into curated pick groups so players cannot stack multiple copies of the same type. Groups include:
+
+    | Group | Description |
+    |---|---|
+    | `alpha_wolf_group` | Non-ancient attack modifier passives |
+    | `big_thunder_lizard_group` | Non-ancient aura passives |
+    | `black_dragon_group` | Ancient-tier aura passives |
+    | `blue_dragonspawn_group` | Offensive single-target actives |
+    | `centaur_khan_group` | No-target / self-cast actives |
+    | `dark_troll_warlord_group` | Point/ground-targeted actives |
+    | `enraged_wildkin_group` | Allied single-target actives |
+    | `lone_druid_spirit_bear_group` | Spirit bear abilities |
+    | `satyr_group` | Non-aura passives |
+    | `necronomicon_group` | On-death passives |
+    | `roshan_group` | Roshan abilities |
+    | `prowler_group` | Ancient attack modifiers |
+    | `warlock_group` | Warlock golem and imp abilities |
+  </Accordion>
+
+  <Accordion title="custom — Redux-exclusive abilities">
+    Original abilities added by the Redux team that do not exist in standard Dota 2 or any imported pack. Sub-groups include:
+
+    - **`flesh_heap`** — Pudge-themed stat-on-kill stacking abilities (Agility, Strength, Armor, Move Speed, Attack Speed, Evasion, and many more).
+    - **`survivor`** — Abilities that grant scaling bonuses that partially persist through death.
+    - **`spell_lab_souls`** — Soul-stacking abilities from Spell Lab.
+    - **`brawler`** — Brawler pack abilities.
+    - **`spell_lab`** — The Spell Lab custom ability set.
+    - **`oneshotonekill`** — The OneShot OneKill pack (includes `jingtong`, `jingtong_op`, `zhanhun`, etc.).
+    - **`overflow`** — Overflow pack abilities (Chi Strike, Dark Blade, Metamorphosis, Spectral Form, etc.).
+    - **`angel_arena_blackstar`** — Blackstar custom abilities.
+    - **`resurgence`** — Resurgence pack.
+    - **`radiant_jungle`** — Neutral camp spawning abilities.
+    - **`life_in_arena`** — Life in Arena pack (Ancient Priestess, Berserker, Frost Lord, Lord of Lightning, etc.).
+    - **`retro_dota`** — Classic Dota-era abilities (Invoker Retro Portal, Scout, Confuse, etc.).
+    - **`angel_arena_reborn`** — Angel Arena Reborn ability set.
+    - **`memes_reborn`** / **`patron_abilities`** — Novelty and patron-exclusive abilities.
+    - **`dusk`**, **`ebf`**, **`oaa`**, **`aba`**, **`holdout`**, **`mercy`** — Various imported packs.
+    - **`basic_abilities`** — Flat stat bonus abilities (mana, health, move speed, spell amp, tenacity, stat gain, etc.).
+    - **`item_abilities`** — Item-derived abilities (Mjolnir, Wards, Bash Reflect).
+  </Accordion>
+
+  <Accordion title="imba — Dota Imba enhanced abilities">
+    Enhanced versions of every Dota 2 hero's abilities from the Dota Imba mod, organised per hero (`hero_abaddon`, `hero_axe`, etc.). These are stronger than their standard counterparts and may be restricted depending on server settings.
+  </Accordion>
+
+  <Accordion title="superop — OP and single-player abilities">
+    Abilities that are too powerful for normal games. They are split further into sub-groups:
+
+    | Sub-group | Description |
+    |---|---|
+    | `singlePlayer_actives` | OP active abilities (e.g., Berserker's Call OP, Rupture OP) |
+    | `singlePlayer_actives_2/3/4` | Additional OP active tiers |
+    | `singlePlayer_passive` | OP passive abilities (Dragon Blood OP, Essence Aura OP, etc.) |
+    | `singlePlayer_passive_2/3/4` | Additional OP passive tiers |
+    | `memes_reborn_op` | OP fruit abilities |
+    | `survivor_op` | OP survivor stack abilities |
+    | `spell_lab_souls_op` | OP soul abilities |
+    | `basic_abilities` (OP) | Stronger stat bonus abilities |
+    | `mega_ultimates` | Mega-tier ultimates (Mega Black Hole, Mega Chronosphere, Floor is Lava, etc.) |
+
+    These abilities only appear when the **OP abilities** option is enabled in the game lobby.
+  </Accordion>
+
+  <Accordion title="heroToSkillMap — Hero-specific bonus abilities">
+    A mapping of hero-to-abilities that unlocks additional skills for certain heroes automatically. For example, Abaddon gets `abaddon_the_quickening`, Alchemist gets `alchemist_transmuted_scepter` and `alchemist_aghnaim_magic_redux`, and so on. These show up alongside the hero's kit if they are playing that hero.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,71 @@
+---
+title: Troll Combos
+description: How the ability ban system prevents broken combinations in Legends of Dota Redux.
+---
+
+A **troll combo** is a combination of abilities that is so powerful it removes meaningful gameplay — usually by enabling infinitely spammable damage, infinite survivability, or a one-shot kill with no counterplay. Redux automatically prevents picking abilities that form a troll combo together.
+
+## How the ban system works
+
+Bans are enforced through two mechanisms:
+
+### 1. ReduxBans flags
+
+The most common mechanism. An ability's data file can include a `ReduxBans` key listing ability names it cannot be picked alongside:
+
+```
+"my_ability_op" {
+    "ReduxBans"    "my_ability_normal"
+}
+```
+
+There are over **200** such flags across the game's ability files. This is the primary way pairs like an OP ability and its standard counterpart are banned from coexisting.
+
+### 2. bans.kv
+
+`bans.kv` handles cases that cannot be expressed as a simple one-to-one pair. It contains:
+
+| Section | Purpose |
+|---|---|
+| `BannedGroups` | Groups where **none** of the abilities can coexist — only one per group is allowed |
+| `Categories > SpammableSpells` | Abilities defined as spammable that are cross-banned with other spammable spells |
+| `Categories > ToggleSpells` | Toggle abilities with zero cooldown and zero mana cost |
+| `BannedTowerCombinations` | Pairs of abilities banned from being on the same tower |
+| `noMulticast` | Abilities that must not trigger Multicast |
+
+## Banned groups
+
+These groups from `bans.kv` enforce a one-per-group rule:
+
+| Group | Abilities |
+|---|---|
+| One-hit combo | Enchant Totem, Walrus Punch, Boundless Strike, Culling Blade (redux), Tidebringer, Metamorphosis, Tiny Grow, Tiny Grow Redux, Overpower, Geminate Attack, Godfall, Hero One Punch, Drunken Brawler |
+| Mega range | Dragon Knight Elder Dragon Form, Take Aim, Psi Blades, Metamorphosis, Arctic Burn |
+| Bash | Time Lock, Slardar Bash, Greater Bash, Roshan Bash, Shodo Sai, Permabash |
+| Unlimited stacking | All Flesh Heap variants, all Lingering Souls, all Survivor abilities, all Tomes (Angel Arena) |
+| Cooldown reduction | Witchcraft, Bad Juju Redux, Jingtong, Jingtong OP, Chakra Magic, Rearm, Zhanhun, Zhanhun OP, Master Magic, Veera Thrill of the Hunt |
+
+## Notable troll combo pairs
+
+The following specific pairs have been banned based on player feedback and balance patches:
+
+| Ability A | Ability B | Reason |
+|---|---|---|
+| Lifebreak Redux | Dispersion | Converts reflected damage into healing for absurd sustain |
+| Shadow Dance | Shadow Dance Redux | Same ability in two forms — effectively doubled |
+| Grapeshot | Enchant Totem | Enchant Totem multiplies Grapeshot damage for a one-shot |
+| Tether | Infest | Tethered hero warps to the Infest target, breaking map pathing |
+| Tether | Arcane Symbiosis | Creates an unbreakable tether-buff loop |
+| Lingering Souls Mana Regen | Ball Lightning | Infinite mana enables infinite Ball Lightning travel |
+| Rapidfire | Impetus | Rapidfire procs stack Impetus hits for enormous burst |
+| Haunt / Shadow Demon Poison | Static Field | Persistent illusions trigger Static Field on every hit |
+| The two Tiny Grows | Each other | Stacking both Grow abilities for extreme stat inflation |
+| Swashbuckle | Fury Swipes (all) | Every Swashbuckle hit applies stacking Fury Swipes |
+| Swashbuckle | Arcane Orb | Arcane Orb procs on every Swashbuckle hit |
+
+## Spammable and toggle spell restrictions
+
+Abilities classed as **spammable** (very low cooldown, near-zero mana cost) or **toggle** (zero cooldown, zero mana) are subject to additional restrictions to prevent infinite-loop gameplay. Examples include:
+
+- Toggle: Rot, Pulse Nova, Morph (all variants), Medusa Split Shot, Muerta Gunslinger, Witch Doctor Voodoo Restoration, Nyx Burrow, Ability Wards.
+- Spammable: Aphotic Shield, Mana Drain, Quill Spray, Static Remnant, Earthshaker Enchant Totem, Rocket Barrage, Abaddon Death Coil.

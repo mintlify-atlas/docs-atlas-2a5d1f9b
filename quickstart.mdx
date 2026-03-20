@@ -1,80 +1,90 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start"
+description: "Get into your first Legends of Dota Redux match in minutes."
 ---
 
-## Get started in three steps
+This guide walks you through finding the game, setting up a lobby, and surviving your first selection phase.
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Find the game in Dota 2">
+    Launch Dota 2, click **Play**, then select **Custom Games** from the game mode picker.
 
-### Step 1: Set up your local environment
+    In the search box type `Legends of Dota Redux` and press Enter. The game should appear in the results. Click **Find Game** to join an existing lobby, or **Create Lobby** to host your own.
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    <Note>
+      If you want to practice alone first, create a lobby and set it to single-player mode in the lobby settings. The game will fill the remaining slots with bots automatically.
+    </Note>
+  </Step>
 
-### Step 2: Deploy your changes
+  <Step title="Configure the lobby">
+    As the host you can configure options before the game starts. The most important settings for a first game:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    | Setting | Recommended for beginners |
+    |---|---|
+    | **Number of abilities** | 4 (default) |
+    | **Balance mode** | Off — less restriction while learning |
+    | **Banning phase** | Off — skips the banning phase |
+    | **Bot difficulty** | Medium |
+    | **Mutators** | Off — learn base game first |
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    Once all players are ready, click **Launch Game**.
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Vote on game options">
+    At the start of the match the **Option Voting** phase lets all players vote on game-wide settings — shop type, mutators, ability categories, and more. Each option is shown with a yes/no vote. The majority vote wins.
 
-### Step 3: Go live
+    For your first game, vote for the defaults or simply wait for the timer to expire.
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="Pick your hero and abilities">
+    This is the core of Redux. During the **Selection** phase you:
 
-## Next steps
+    1. **Pick a hero** — Your hero determines your base stats and your hero perk. The hero's own abilities are replaced by your picks.
+    2. **Pick ability slot 1** — Any regular (non-ultimate) ability from any hero.
+    3. **Pick ability slot 2** — Another regular ability from any hero.
+    4. **Pick your ultimate** — Any ultimate ability from any hero.
+    5. **Pick your perk** — A passive bonus tied to a specific hero (shown in the perk tab).
 
-Now that you have your docs running, explore these key features:
+    Abilities are grouped into categories in the picker. Use the category tabs to navigate the pool. You can use the search bar to find a specific ability by name.
+
+    <Warning>
+      The selection timer is strict. If it expires before you finish picking, the remaining slots are filled randomly. Watch the countdown in the top-right corner.
+    </Warning>
+
+    See [Ability Selection](/gameplay/ability-selection) for a detailed breakdown of the picker interface and picking strategy.
+  </Step>
+
+  <Step title="Review your build">
+    After all players finish picking, the **Review** phase shows everyone's completed builds. Use this time to check your ability ordering and think about your item build.
+
+    The match starts automatically when the review timer expires.
+  </Step>
+
+  <Step title="Play">
+    The game plays like standard Dota 2 from this point. Lane, farm, draft items, and fight — the main difference is that every hero has a custom ability loadout.
+
+    A few tips for first-timers:
+
+    - **Level abilities in the order you planned** — some ability synergies depend on level thresholds.
+    - **Check troll-combo warnings** — if two of your abilities are a known broken combination, the game may show a warning during selection.
+    - **Use `-help`** in chat to see available chat commands mid-game.
+    - **Vote for options you want** — type `-dc` (double creeps) or `-ar` (anti-rat) in chat to start a vote.
+  </Step>
+</Steps>
+
+## What to do next
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Game phases" icon="list-ol" href="/gameplay/game-phases">
+    Understand every phase of the match from loading through in-game.
+  </Card>
+  <Card title="Ability selection" icon="wand-magic-sparkles" href="/gameplay/ability-selection">
+    Deep dive into the ability picker, categories, and build strategy.
+  </Card>
+  <Card title="Mutators" icon="shuffle" href="/gameplay/mutators">
+    Explore the optional game modifiers you can enable before the match.
+  </Card>
+  <Card title="Chat commands" icon="comments" href="/gameplay/chat-commands">
+    All commands you can type in chat during a match.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

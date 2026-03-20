@@ -1,0 +1,106 @@
+---
+title: "Voting"
+description: "Propose and pass in-game rule changes through the chat-based voting system."
+keywords: ["voting", "vote", "anti-rat", "double creeps", "cheat mode", "kamikaze", "hero builder", "chat commands"]
+---
+
+Players can propose changes to the game rules at any time during a match by typing a chat command. If enough players agree within the voting window, the change takes effect immediately.
+
+## How voting works
+
+<Steps>
+  <Step title="Propose a vote">
+    Any player types a vote command in all-chat (e.g., `-antirat`). The game announces the proposal to all players.
+  </Step>
+  <Step title="Players vote">
+    A **10-second** window opens. All connected players cast their vote — the system counts the total active player count automatically.
+  </Step>
+  <Step title="Threshold check">
+    The number of approvals is measured against a required percentage. Some votes require **100%** agreement; others need only **50%** or **70%** depending on the map and the vote type.
+  </Step>
+  <Step title="Outcome">
+    If the threshold is met, the rule change is applied immediately and a global announcement is broadcast. If the threshold is not met, the vote fails silently and can be re-proposed.
+  </Step>
+</Steps>
+
+<Info>
+  Most votes can only be passed once per game. Attempting to start a vote that has already passed shows an error message.
+</Info>
+
+---
+
+## Voteable rules
+
+The table below lists every vote available in-game. **Threshold** shows the percentage of players who must approve the vote. The `all_allowed` map uses relaxed thresholds for some votes; standard maps require 100% for those same votes.
+
+| Chat command | Alias | What it does | Threshold (standard) | Threshold (`all_allowed`) |
+|---|---|---|---|---|
+| `-antirat` | `-ar` | Enables anti-rat protection. Tier 3 towers cannot be destroyed until all outer towers are gone. | 100% | 50% |
+| `-doublecreeps` | `-dc` | Doubles all neutral creep camp spawns (`neutralMultiply = 2`). | 100% | 70% |
+| `-enablecheat` | `-ec` | Enables cheat mode for all players, unlocking all cheat commands. | 100% | 100% |
+| `-enablekamikaze` | `-ek` | Disables the anti-kamikaze mechanic. No penalty for dying 3 times within 60 seconds. | 100% | 100% |
+| `-enablebuilder` | `-eb` | Unlocks the in-game hero builder so players can change their build mid-game. A 30-second penalty applies if both teams have active players. | 100% | 100% |
+| `-enablerespawn` | `-er` | Disables the escalating respawn time mechanic. Respawn rates no longer increase after 40 minutes. | 100% | 100% |
+| `-enablefat` | `-ef` | Starts the Fat-O-Meter mechanic (`useFatOMeter = 2`). | 100% | 50% |
+| `-enablerefresh` | — | Enables cooldown refresh on death. | 100% | 50% |
+| `-switchteam` | — | Moves the proposing player to the other team. Only available when the game detects a team imbalance or in single-player mode. Requires only 50% approval if the game is under 20 minutes old. | 100% | — |
+
+<Note>
+  `-switchteam` is only available to the player on the larger team (or when `Ingame.needsTeamBalance` is true). It cannot be proposed at game time 0.
+</Note>
+
+---
+
+## Threshold differences by map
+
+The `all_allowed` map is designed for relaxed, permissive play. To reflect that, several votes that normally require unanimous agreement pass at a lower threshold:
+
+```lua
+-- From commands.lua
+util:CreateVoting(
+  "lodVotingAntirat",
+  playerID,
+  10,  -- voting window in seconds
+  OptionManager:GetOption('mapname') == 'all_allowed' and 50 or 100,
+  function() ... end
+)
+```
+
+Only `-enablecheat`, `-enablekamikaze`, `-enablebuilder`, and `-enablerespawn` always require 100% regardless of map — these are considered consequential enough to need full agreement.
+
+---
+
+## Cheat commands (after cheat mode is enabled)
+
+Once cheat mode is active (either via `-enablecheat` vote or automatically in single-player mode), additional commands become available to all players:
+
+| Command | Effect |
+|---|---|
+| `-gold [amount]` | Gives gold (default 100,000) |
+| `-points [amount]` | Gives ability points (default 1) |
+| `-god` | Toggles 60-second invulnerability |
+| `-nofog` / `-fog` | Disables or re-enables fog of war |
+| `-aghs` / `-scepter` | Toggles Aghanim's Scepter upgrade |
+| `-regen` | Toggles fountain regeneration aura |
+| `-gem` | Toggles permanent true sight |
+| `-invis` | Toggles permanent invisibility |
+| `-reflect` | Toggles spell reflect |
+| `-spellblock` | Toggles spell block |
+| `-cooldown` | Toggles no-cooldown mode |
+| `-globalcast` | Toggles global cast range |
+| `-wtf` | Toggles WTF mode (no cooldowns or mana costs) |
+| `-lvlup [n]` | Levels up the hero by `n` levels (default 1) |
+| `-lvlmax` | Sets hero to maximum level with all abilities maxed |
+| `-item <name>` | Gives a named item |
+| `-addability <name>` | Adds a named ability |
+| `-removeability <name>` | Removes a named ability (use `all` to remove everything) |
+| `-respawn` | Instantly respawns a dead hero |
+| `-refresh` | Restores full HP, mana, and resets all cooldowns |
+| `-teleport` / `-dagger` | Gives a global teleport dagger |
+| `-startgame` | Forces the game to start immediately |
+| `-dif <level> [playerID]` | Changes bot difficulty (1–4 scale) |
+| `-fortify` | Toggles fountain regen on all buildings (both teams) |
+| `-fortify_rad` | Toggles fountain regen on Radiant buildings only |
+| `-fortify_dire` | Toggles fountain regen on Dire buildings only |
+
+See [Cheat commands](/gameplay/cheat-commands) for full documentation.

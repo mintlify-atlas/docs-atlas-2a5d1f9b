@@ -1,97 +1,82 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Legends of Dota Redux"
+description: "A Dota 2 custom game that lets you build any hero with any combination of abilities from across the entire hero roster."
 ---
 
-## Setting up
-
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get into your first game in minutes — find the mod on Steam Workshop and start picking abilities.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Ability Selection" icon="wand-magic-sparkles" href="/gameplay/ability-selection">
+    Learn how to draft, build, and customise your hero's skill set.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Game Modes & Options" icon="sliders" href="/modes/game-modes">
+    Explore the game modes, mutators, and advanced voting options.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Reference" icon="book" href="/reference/vscripts-overview">
+    Deep-dive into the Lua scripting layer, KV data files, and the server API.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What is Legends of Dota Redux?
 
-Everything you need to create world-class documentation.
+Legends of Dota Redux is a community-built Dota 2 custom game descended from the original Legends of Dota (LoD) by ash47. In Redux you draft a hero and then **fill every ability slot with any skill from any hero in the game** — the result is a wildly flexible build system that rewards creativity and knowledge of the entire ability pool.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+Redux extends the original with hundreds of new custom abilities, an extensive mutator system, hero perks, community skill-build sharing, and bot AI support.
 
-## Need inspiration?
+<CardGroup cols={3}>
+  <Card title="500+ abilities" icon="bolt">
+    All standard Dota 2 abilities plus dozens of custom-built Redux skills.
+  </Card>
+  <Card title="Mutators" icon="shuffle">
+    Toggle game-wide rule changes — vampirism, kill streaks, random spells, and more.
+  </Card>
+  <Card title="Bot support" icon="robot">
+    Play against or alongside AI bots with configurable difficulty levels.
+  </Card>
+  <Card title="Hero perks" icon="star">
+    Unlock bonus stats and passive bonuses linked to the abilities you select.
+  </Card>
+  <Card title="Skill builds" icon="bookmark">
+    Save, share, vote on, and favourite community skill builds.
+  </Card>
+  <Card title="Chat voting" icon="comments">
+    Players vote in-chat to enable cheats, double neutrals, anti-rat, and more.
+  </Card>
+</CardGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## Game phases
+
+Every match flows through a structured sequence of phases before the Ancients are at risk.
+
+| Phase | What happens |
+|---|---|
+| **Loading** | Players connect; the server waits for the lobby to fill |
+| **Option voting** | Players vote on game options (shop type, hero count, mutators …) |
+| **Option selection** | Host finalises options |
+| **Banning** | Optional phase to ban abilities from the pool |
+| **Selection** | Each player drafts their hero and picks abilities |
+| **Review** | Inspect your build before the game starts |
+| **Item picking** | Optionally pick starting items |
+| **In-game** | Standard Dota match begins |
+
+<Note>
+  New to LoD Redux? Start with the [Quick Start](/quickstart) guide to get through your first selection phase without missing a pick timer.
+</Note>
+
+## Key links
+
+<CardGroup cols={2}>
+  <Card title="Changelog" icon="clock-rotate-left" href="/changelog">
+    See what changed in each version of Redux.
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/contributing/setup">
+    Learn how to add abilities, fix bugs, and submit pull requests.
+  </Card>
+  <Card title="Credits" icon="users" href="/contributing/credits">
+    Meet the developers and contributors behind Redux.
+  </Card>
+  <Card title="GitHub" icon="github" href="https://github.com/DarkoniusXNG/Legends-of-Dota-Redux">
+    Browse the source code, open issues, and submit PRs.
+  </Card>
+</CardGroup>

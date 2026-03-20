@@ -1,0 +1,115 @@
+---
+title: Hero Perks
+description: Passive bonuses that unlock based on the hero you're playing and the abilities you pick.
+---
+
+The **hero perk** system grants additional passive abilities or bonus skills to heroes based on thematic alignment with the abilities they've selected (or simply by virtue of playing a particular hero). It gives each hero a sense of identity even in a fully open ability draft.
+
+## How it works
+
+When you open the skill picker there is a **Perks** checkbox. Enabling it filters the list to show only abilities that are relevant to your hero's perk categories, making it easier to build around a theme.
+
+`hero_perks.kv` maps each hero to one or more **perk categories** or **specific ability names**. If your picked abilities match those categories, the associated perk passives unlock automatically.
+
+### Perk categories
+
+Perks are grouped into thematic categories. A hero can be tied to one category, multiple categories, or a specific ability name (using `|` as a separator). Examples:
+
+| Category | Description |
+|---|---|
+| `fire` | Fire and burn-related abilities |
+| `ice` | Frost and cold abilities |
+| `lightning` | Lightning and static abilities |
+| `earth` | Earth and stone abilities |
+| `nature` | Nature and forest abilities |
+| `light` | Holy and light abilities |
+| `water` | Water and ocean abilities |
+| `dragon` | Dragon abilities |
+| `blood` | Bleed and blood mechanics |
+| `poison` | Poison and venom abilities |
+| `demon` | Demon and dark energy abilities |
+| `undead` | Undead mechanics |
+| `invis` | Invisibility abilities |
+| `illusion` | Illusion abilities |
+| `summon_non_ult` | Non-ultimate summon abilities |
+| `aura` | Aura-type passives |
+| `ranger` | Range and projectile abilities |
+| `blink` | Blink-style mobility |
+| `mobility` | General movement abilities |
+| `support` | Healing and support abilities |
+| `silence` | Silence abilities |
+| `bash` | Bash passives |
+| `drain` | Mana/health drain |
+| `skillshot` | Skillshot projectile abilities |
+| `physical` | Physical damage amplification |
+| `dagger` | Dagger attack abilities |
+| `blades` | Blade and slashing abilities |
+| `channeled` | Channelled abilities |
+| `transformation` | Hero transformation abilities |
+| `scientific` | Tinker-style mechanical abilities |
+| `enemymoving` | Abilities that reposition enemies |
+| `rage` | Enrage / berserk abilities |
+| `self_damage` | Self-damage mechanics |
+| `trap` | Trap abilities |
+| `explosive` | Explosive abilities |
+| `neutral` | Neutral creep abilities |
+| `teleport` | Teleport abilities |
+
+## Hero perk assignments
+
+Some representative examples from `hero_perks.kv`:
+
+| Hero | Perk tags / abilities |
+|---|---|
+| Abaddon | `abaddon_frostmourne`, `undead` |
+| Alchemist | `gold` |
+| Anti-Mage | `blink` |
+| Beastmaster | `aura`, `summon_non_ult` |
+| Crystal Maiden | `crystal_maiden_brilliance_aura`, `ice` |
+| Dragon Knight | `dragon` |
+| Ember Spirit | `fire` |
+| Faceless Void | `faceless_void_time_lock` |
+| Gyrocopter | `side_gunner_redux` |
+| Huskar | `huskar_berserkers_blood`, `self_damage` |
+| Jakiro | `fire`, `ice` |
+| Keeper of the Light | `aether_range_lod` |
+| Leshrac | `light`, `lightning` |
+| Mirana | `skillshot` |
+| Obsidian Destroyer | `obsidian_destroyer_astral_imprisonment`, `obsidian_destroyer_astral_imprisonment_redux`, `imba_obsidian_destroyer_astral_imprisonment` |
+| Pangolier | `pangolier_heartpiercer_old` |
+| Shadow Demon | `demon` |
+| Silencer | `silence` |
+| Spectre | `spectre_dispersion` |
+| Spirit Breaker | `bash` |
+| Techies | `trap`, `explosive` |
+| Tidehunter | `water` |
+| Tiny | `earth`, `nature` |
+| Warlock | *(none)* |
+| Wisp | `obsidian_destroyer_essence_aura_lod`, `light` |
+| Zeus | `lightning` |
+
+Heroes with an empty perk entry (like Batrider, Warlock, or Pudge) do not have a perk category filter — any ability is equally valid for them.
+
+## The Chen creep perk
+
+`perks.kv` defines a special sub-system for Chen. When Chen's perk is active, his Holy Persuasion converts creeps that retain specific abilities. The list of abilities Chen can grant to converted creeps includes:
+
+- Enchantress Untouchable
+- Faceless Void Time Lock
+- Life Stealer Feast
+- Luna Lunar Blessing / Moon Glaive
+- Anti-Mage Mana Break
+- Heartstopper Aura
+- Axe Counter Helix
+- Phantom Assassin Coup de Grace
+- Juggernaut Blade Dance
+- Ursa Fury Swipes
+- Sven Great Cleave
+- Vengefulspirit Command Aura
+- and many more
+
+Legion Commander shares the same perk definition as Chen, meaning her Duel can also convert creeps with the same ability pool when the perk is active.
+
+## Gender classification
+
+`perks.kv` also includes a gender map (`male` / `female`) used by Queen of Pain's perk, which has different effects depending on the gender of nearby heroes.

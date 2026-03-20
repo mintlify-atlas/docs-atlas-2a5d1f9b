@@ -1,0 +1,90 @@
+---
+title: "Development setup"
+description: "Set up a local development environment to contribute to Legends of Dota Redux."
+---
+
+This guide walks you through cloning the repository, installing dependencies, and launching the addon inside Dota 2.
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- **Dota 2** — installed via Steam. The postinstall script locates your Dota 2 directory automatically using `find-steam-app`.
+- **Node.js** — used to run the install and launch scripts.
+- **Git** — used to clone the repository.
+
+## Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the project from GitHub:
+
+    ```bash
+    git clone https://github.com/DarkoniusXNG/Legends-of-Dota-Redux
+    cd Legends-of-Dota-Redux
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Run `npm install` from the project root:
+
+    ```bash
+    npm install
+    ```
+
+    The `postinstall` script (`scripts/install.js`) runs automatically after installation. It locates your Dota 2 game directory via Steam and creates the necessary symlinks so the addon is available when you launch the game.
+
+    <Note>
+      If the postinstall script fails, verify that Dota 2 is installed through Steam and that your Steam library path is accessible.
+    </Note>
+  </Step>
+
+  <Step title="Launch Dota 2 with the addon">
+    Start Dota 2 with the addon loaded:
+
+    ```bash
+    npm run launch
+    ```
+
+    This runs `scripts/launch.js`, which starts Dota 2 with the correct launch options to load the Legends of Dota Redux addon.
+  </Step>
+</Steps>
+
+## Code style
+
+The project uses [Prettier](https://prettier.io) for consistent formatting. The configuration lives in `.prettierrc.json`:
+
+```json .prettierrc.json
+{
+    "tabWidth": 4,
+    "printWidth": 120,
+    "trailingComma": "all",
+    "proseWrap": "never"
+}
+```
+
+A [Husky](https://typicode.github.io/husky) pre-commit hook runs `pretty-quick --staged` automatically before each commit, so staged files are formatted before they land in version control. You don't need to run Prettier manually.
+
+To check formatting across the entire project without committing:
+
+```bash
+npm run check
+```
+
+## Editor config
+
+An `.editorconfig` file is included to keep whitespace consistent across editors:
+
+| Setting | Value |
+| --- | --- |
+| Charset | `utf-8` |
+| Indent style | Tab |
+| Indent size | 4 |
+| Line endings | CRLF |
+| Final newline | Yes |
+
+<Note>
+  YAML and Markdown files (`.yml`, `.yaml`, `.md`) use **spaces** with an indent size of 2, overriding the tab default.
+</Note>
+
+Most editors support EditorConfig natively or via a plugin. See [editorconfig.org](https://editorconfig.org) for setup instructions.

@@ -1,0 +1,131 @@
+---
+title: User Settings API
+description: Endpoints for persisting and retrieving per-player settings blobs.
+---
+
+The user settings endpoints store and retrieve an opaque settings blob keyed by Steam ID. The blob content is defined by the client (in-game Lua) and is treated as a raw string by the server.
+
+Both endpoints require the `Auth-Key` header. See [Server API Overview](/reference/server-api) for authentication details.
+
+---
+
+## POST /saveOptions
+
+Saves or updates a player's settings. If a record for the given `steamID` already exists, the `content` field is overwritten. Otherwise a new record is created.
+
+### Request
+
+```http
+POST /saveOptions
+Auth-Key: <LodAuthKey>
+Content-Type: application/x-www-form-urlencoded
+
+data={...}
+```
+
+<ParamField header="Auth-Key" type="string" required>
+  Shared secret configured in `appsettings.json` as `LodAuthKey`.
+</ParamField>
+
+<ParamField body="data" type="string" required>
+  JSON-encoded user settings object.
+
+  <Expandable title="data fields">
+    <ParamField body="steamID" type="string" required>
+      64-bit Steam ID. Used as the primary key — subsequent saves with the same ID overwrite the previous record.
+    </ParamField>
+    <ParamField body="content" type="string" required>
+      Arbitrary settings payload as a JSON string. The server stores and returns it verbatim.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request
+
+```
+POST /saveOptions
+Auth-Key: 9AE2940BA48F394CD13CAB9F813E861334C3E6F814425710EC2ED6AA75560898
+Content-Type: application/x-www-form-urlencoded
+
+data={"steamID":"76561197966504115","content":"{\"volume\":80,\"chatWheel\":true}"}
+```
+
+### Response
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Settings saved successfully. |
+| `401 Unauthorized` | Missing or invalid `Auth-Key` header. |
+
+The response body is empty on success.
+
+---
+
+## POST /loadOptions
+
+Retrieves the settings blob for a given Steam ID.
+
+### Request
+
+```http
+POST /loadOptions
+Auth-Key: <LodAuthKey>
+Content-Type: application/x-www-form-urlencoded
+
+data={...}
+```
+
+<ParamField header="Auth-Key" type="string" required>
+  Shared secret configured in `appsettings.json` as `LodAuthKey`.
+</ParamField>
+
+<ParamField body="data" type="string" required>
+  JSON object with a single field.
+
+  <Expandable title="data fields">
+    <ParamField body="steamID" type="string" required>
+      64-bit Steam ID of the player whose settings should be loaded.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request
+
+```
+POST /loadOptions
+Auth-Key: 9AE2940BA48F394CD13CAB9F813E861334C3E6F814425710EC2ED6AA75560898
+Content-Type: application/x-www-form-urlencoded
+
+data={"steamID":"76561197966504115"}
+```
+
+### Response
+
+<ResponseField name="body" type="string">
+  JSON-serialised `content` string that was previously saved by `/saveOptions`. The value is double-encoded — it is a JSON string whose value is itself a JSON object.
+</ResponseField>
+
+```json
+"{\"volume\":80,\"chatWheel\":true}"
+```
+
+| Status | Meaning |
+|---|---|
+| `200 OK` | Settings found; body contains the serialised content. |
+| `401 Unauthorized` | Missing or invalid `Auth-Key` header. |
+| `404 Not Found` | No settings record exists for the given Steam ID. |
+
+<Note>
+The `404 Not Found` response is expected for first-time players who have not yet saved any settings. The client should treat a 404 as "use defaults".
+</Note>
+
+---
+
+## Data Model
+
+The server maps the request to `UserSettingsSave`:
+
+| Field | Type | JSON Key | Description |
+|---|---|---|---|
+| `SteamId` | `string` | `steamID` | Primary key in the database. |
+| `SettingsContent` | `string` | `content` | Raw settings payload stored verbatim. |

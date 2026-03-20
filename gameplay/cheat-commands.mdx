@@ -1,0 +1,69 @@
+---
+title: Cheat commands
+description: Debug and cheat commands available after cheat mode is enabled by a unanimous player vote.
+---
+
+Cheat commands grant powerful in-game effects for testing builds, debugging, or playing casually. They are only available after the lobby votes to enable cheat mode.
+
+## Enabling cheat mode
+
+Type `-enablecheat` (or `-ec`) in chat to start a vote. **All players must accept** before cheat mode is enabled. Once active, a global announcement confirms the change and the cheat panel becomes visible in the HUD.
+
+Single-player mode and lobbies running with `sv_cheats` enabled on the server also unlock these commands without a vote.
+
+<Warning>
+Cheat mode cannot be disabled once enabled. Use it only in casual lobbies where all players agree.
+</Warning>
+
+## Cheat command reference
+
+| Command | Description | Notes |
+|---------|-------------|-------|
+| `-gold [amount]` | Gives you gold. Defaults to 100,000 if no amount is specified. | Example: `-gold 5000` gives 5,000 gold. Disabled when vanilla `sv_cheats` is active. |
+| `-points [amount]` | Grants ability upgrade points. Defaults to 1 if no amount is specified. | Example: `-points 5`. |
+| `-god` | Toggles invulnerability (modifier: `modifier_invulnerable`) on your hero. Duration is 60 seconds in LoD cheat mode, unlimited in vanilla cheat mode. | Toggle: cast again to remove. |
+| `-regen` | Toggles fountain-level health and mana regeneration on your hero. | Toggle: cast again to remove. |
+| `-lvlup [levels]` | Levels your hero up by the specified number of levels (default 1), up to the configured max hero level. | Example: `-lvlup 10`. Disabled in vanilla cheat mode. |
+| `-lvlmax` | Instantly levels your hero to the maximum level and maxes all ability levels. | Disabled in vanilla cheat mode. |
+| `-refresh` | Fully restores your hero's health and mana and ends all ability and item cooldowns. | Disabled in vanilla cheat mode. |
+| `-respawn` | Immediately respawns your hero if you are dead. | Disabled in vanilla cheat mode. |
+| `-item <name>` | Gives your hero the named item. Use the internal item name (e.g. `item_blink`). | Disabled in vanilla cheat mode. |
+| `-addability <name>` | Adds the named ability to your hero. Aliases: `-giveability`, `-add`. | Uses the internal ability name. |
+| `-removeability <name>` | Removes the named ability from your hero and refunds its levels as upgrade points. Use `all` to remove every ability. | Alias: `-remove`. |
+| `-gem` | Toggles True Sight (modifier: `modifier_tower_truesight_aura`) on your hero, revealing all invisible units. | Toggle: cast again to remove. |
+| `-invis` | Toggles permanent invisibility on your hero using Riki's permanent invisibility ability. | Toggle: cast again to remove. |
+| `-reflect` | Toggles Spell Reflect on your hero (ability: `spell_reflect_cheat`). | Toggle: cast again to remove. |
+| `-spellblock` | Toggles a Roshan-style spell block on your hero (ability: `roshan_spell_block_cheat`). The icon is hidden. | Toggle: cast again to remove. |
+| `-cooldown` | Toggles No Cooldowns mode on your hero (ability: `jingtong_cheat`). | Toggle: cast again to remove. |
+| `-globalcast` | Toggles global cast range on your hero (ability: `aether_range_lod_global`). | Toggle: cast again to remove. |
+| `-wtf` | Toggles WTF mode: no cooldowns and no mana costs for all abilities. Alias: `-wtfmenu`. | Disabled in vanilla cheat mode. |
+| `-unwtf` | Disables WTF mode if it is active. | Disabled in vanilla cheat mode. |
+| `-nofog` | Disables fog of war for the entire map. | |
+| `-fog` | Re-enables fog of war. | |
+| `-aghs` | Toggles the Aghanim's Scepter upgrade modifier on your hero. Aliases: `-aghanim`, `-scepter`. | Toggle: cast again to remove. |
+| `-dagger` | Gives your hero the developer teleport dagger item (global blink). | |
+| `-dagon` | Gives your hero the developer ultra-Dagon item. | |
+| `-teleport` | Gives your hero the teleport dagger (same as `-dagger`). | Disabled in vanilla cheat mode. |
+| `-startgame` | Forces the game clock to start and creeps to spawn immediately. Only works before the game clock begins. | Disabled in vanilla cheat mode. |
+| `-fortify` | Toggles fountain-aura regeneration on **all** Radiant and Dire buildings simultaneously. | |
+| `-fortify_rad` | Toggles fountain-aura regeneration on all **Radiant** buildings. | |
+| `-fortify_dire` | Toggles fountain-aura regeneration on all **Dire** buildings. | |
+| `-pid` | Prints all player IDs to chat. Available outside of cheat mode. | |
+| `-dif <level> [#playerID]` | Sets bot difficulty for a bot player. Difficulty levels: 1 = Easy, 4 = Unfair. Append `#<playerID>` to target a specific bot. | Example: `-dif 4 #3`. |
+| `-bot switch` | Toggles bots between early-game and late-game AI modes. | |
+
+## Targeting other players
+
+Most cheat commands apply to your own hero. To apply a cheat to a different player, append `#<playerID>` anywhere in your message:
+
+```
+-gold 50000 #3
+```
+
+This gives 50,000 gold to the player with ID 3. Use `-pid` to look up player IDs before doing this.
+
+## Notes
+
+- All commands are case-insensitive.
+- Commands in the cheat section only execute when `util:isSinglePlayerMode()` returns true, when `Ingame.voteEnabledCheatMode` is true, or (for some commands) when `IsInToolsMode()` is true.
+- Some commands behave differently or are disabled entirely when the server has native `sv_cheats` or tools mode active, to avoid conflicts with Valve's built-in cheat system.

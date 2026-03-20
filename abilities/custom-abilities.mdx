@@ -1,0 +1,126 @@
+---
+title: Custom Abilities
+description: Redux-exclusive abilities and the imported ability packs available in Legends of Dota Redux.
+---
+
+Alongside every standard Dota 2 ability, Legends of Dota Redux ships a large library of custom and imported abilities. These are defined in `npc_abilities_custom.txt` and implemented in the `vscripts/abilities/` directory.
+
+<AccordionGroup>
+  <Accordion title="Redux original abilities">
+    These abilities were written from scratch for this game mode and do not exist anywhere else:
+
+    | Ability | Description |
+    |---|---|
+    | `arcane_mastery` | Reduces cooldowns based on intelligence |
+    | `aether_range_lod` | Increases cast range, scales with level |
+    | `berserkers_blood_lod` | Grants bonus attack speed and lifesteal at low health (Huskar-style, hero-agnostic) |
+    | `side_gunner_redux` | Fires side rockets passively (Gyrocopter's perk-tied ability) |
+    | `crater` | Creates a crater that slows enemies who step inside |
+    | `mana_laser` | Fires a mana-burning beam at a target |
+    | `jingtong` | Resets cooldowns of other abilities on use |
+    | `jingtong_op` | OP version of Jingtong with more resets |
+    | `zhanhun` | Additional cooldown-reset ability |
+    | `zhanhun_op` | OP version of Zhanhun |
+    | `dazzle_bad_juju_redux` | Redux rework of Bad Juju, adjusting cooldown reduction scaling |
+    | `obsidian_destroyer_astral_imprisonment_redux` | Tweaked Astral Imprisonment that stores mana differently |
+    | `nyx_assassin_burrow_redux` | A redux version of Nyx's Burrow with adjusted stats |
+    | `morph_*_redux` | Toggle-based Redux Morphling variants (Int↔Str, Agi↔Int, etc.) |
+    | `ursa_fury_swipes_lod` | Fury Swipes tuned for use outside Ursa |
+    | `ursa_enrage_old` | Classic Ursa Enrage before rework |
+    | `earthshaker_aftershock_lod` | Aftershock tuned to function independently of Fissure |
+    | `slark_essence_shift_*_lod` | Strength, Agility, and Intelligence variants of Essence Shift |
+    | `bloodseeker_thirst_lod` | Thirst tuned to work without Bloodseeker's passive Rupture interaction |
+    | `doom_bringer_lvl_death_old` | Classic LVL Death before rework |
+    | `wisp_overcharge_old` | Classic Overcharge before the Wisp rework |
+    | `zeus_static_field_old` | Classic Static Field before rework |
+    | `pangolier_heartpiercer_old` | Classic Heartpiercer before rework |
+    | `tiny_grow_lod` / `tiny_grow_lod_redux` | Two independent Tiny Grow variants |
+
+    **Flesh Heap series** — a large set of on-kill stacking abilities, each granting a different stat as kills accumulate:
+    Agility, Strength, Intelligence, Armor, Move Speed, Attack Speed, Attack Range, Cast Range, Evasion, Magic Resistance, Health Regen, Mana Regen, Lifesteal, Spell Amp, Spell Lifesteal, Cooldown Reduction, Vision, and Heal Amp.
+
+    **Lingering Souls series** — soul-based stacking abilities from Spell Lab (Agility, Strength, Intelligence, Armor, Attack Range, Attack Speed, Cast Range, Cooldown, Damage, Evasion, Health Regen, Magic Resistance, Mana Regen, Move Speed, Spell Boost, Vision).
+
+    **Survivor series** — abilities that retain 33% of their stacks on death, covering the same stat range as Souls.
+  </Accordion>
+
+  <Accordion title="OneShot OneKill pack">
+    A set of high-impact abilities imported from the OneShot OneKill game mode:
+
+    | Ability | Notes |
+    |---|---|
+    | `jingtong` | Cooldown reset, in the banned cooldown-reduction group |
+    | `jingtong_op` | OP variant, also in the cooldown group |
+    | `shiguanghuisu` | Time-manipulation ability |
+    | `benneng` | Energy-based burst |
+    | `sight` | True-sight ability |
+    | `zhanhun` | Second cooldown reset, in the banned cooldown-reduction group |
+    | `zhanhun_op` | OP variant |
+  </Accordion>
+
+  <Accordion title="Overflow pack">
+    From the Overflow custom game:
+
+    | Ability | Notes |
+    |---|---|
+    | `chi_strike` / `chi_strike_sp` | Melee burst ability and OP variant |
+    | `eat_tree_eldri` | Consume trees for sustain |
+    | `blink_support` | Blink-style support ability |
+    | `dark_blade` / `light_blade` | Melee weapon abilities |
+    | `metamorphosis` / `metamorphosis_op` | Transform ability and OP version |
+    | `military` | Combat stance ability |
+    | `seer` | Scouting ability |
+    | `spectral_form` / `spectral_form_op` | Ghost form with magic weakness |
+    | `spell_reflect` / `spell_reflect_op` | Spell reflection |
+    | `berserker` | Berserker damage ability |
+    | `eldri_anti_magic` | Anti-magic barrier |
+    | `channel_earthquake` / `channel_earthquake_op` | Channelled earthquake |
+  </Accordion>
+
+  <Accordion title="Angel Arena Reborn pack">
+    Imported from Angel Arena Reborn:
+
+    - `angel_arena_lightning`, `angel_arena_magic_fire`, `angel_arena_razor_power`, `angel_arena_revenge`
+    - `angel_arena_shot`, `angel_arena_storm`, `angel_arena_summon_hawk`
+    - `angel_arena_berserk`, `angel_arena_cripple`
+    - Ultimates: `angel_arena_darkrage`, `angel_arena_roots`, `angel_arena_song`, `angel_arena_hola_heal`, `angel_arena_transmute`, `angel_arena_demonic`, `angel_arena_grace`
+    - Tomes: Stat tomes for Agility, Strength, Intelligence, Medicine, Gods, and Level (standard and OP variants)
+  </Accordion>
+
+  <Accordion title="Life in Arena pack">
+    From Life in Arena:
+
+    - **Actives:** Ancient Priestess Spirit Link, Surge of Intelligence, Berserker Fire Spear, Firelord Flame Strike and Fire Trap, Frost Lord Cold and Frost Breath, Ghoul Devour, Akron Explosion, Paladin Blizzard, Dark Knight Dark Forces, Lord of Lightning Lightning Shield, Android Cluster Rockets, Serpent Queen Ball Lightning.
+    - **Passives:** Butcher Zombie, Frost Lord Freezing, Lord of Lightning Holy Wrath, Kret Poisoning and Lust for Life.
+    - **Ferocity group:** All-stat ferocity abilities.
+    - **Ultimates:** Ancient Priestess Ritual Protection, Berserker Madness, Frost Lord Ice, Lord of Lightning Brain Storm, Paladin Impregnability, Archmage Anomaly.
+    - **Illusions:** Illusionist abilities.
+  </Accordion>
+
+  <Accordion title="Dusk pack">
+    From the Dusk game mode:
+
+    - `gemini_abyssal_vortex`, `gemini_unstable_rift`, `gemini_voidal_flare`, `gemini_extraplanar_pact`
+    - Misc Dusk abilities: `self_explosion`, `crimson_blood_sorcery`, `alchemist_alchemise`, `alchemist_motherloads`, `aether_reality_shift`
+  </Accordion>
+
+  <Accordion title="Other imported packs">
+    | Pack | Key abilities |
+    |---|---|
+    | **Zulf** | `zulf_jet_stream`, `zulf_typhoon` |
+    | **Retro Dota** | Classic Invoker abilities: Portal, Scout, Invisibility Aura, Confuse, Disarm, Deafening Blast |
+    | **OAA** | `abyssal_underlord_dark_rift_oaa`, `sohei_dash/guard/flurry/momentum/quivering_palm`, `tinkerer_oil_spill/smart_missiles` |
+    | **ABA** | `mana_eater_mana_shell`, `mana_eater_mystic_bolt`, `oracle_will_to_live`, `perun_ion_blast`, Bubble Witch abilities |
+    | **EBF** | `ebf_rubick_arcane_echo`, `ebf_mana_fiend_essence_amp`, `ebf_clinkz_trickshot`, `ebf_underlord_expulsion`, `ebf_troll_warlord_multistrike` |
+    | **Holdout** | Holdout wave-defense abilities |
+    | **Mercy** | Mercy pack abilities |
+    | **Memes Reborn** | Lina fruit abilities (Banana, Coconut, Grapefruit) — standard and OP |
+    | **Patron** | `crater`, `pushing_blast` (patron supporter exclusive abilities) |
+    | **Basic stat abilities** | Tenacity, Mana, Health, Move Speed, XPM, GPM, Spell Amp, Stat Gain, Stat Bonus, Mjolnir, Wards, Bash Reflect |
+    | **Lysander** | `lysander_captains_compass`, `lysander_grapeshot`, `lysander_phantom_fleet` |
+    | **AABS** | `aabs_nightshadow` |
+    | **Hawkeye** | `hawkeye_detonator_dart`, `hawkeye_hit_n_run`, `hawkeye_ricochet` |
+    | **Molten** | `unwavering_stance`, `molten_charge`, `bulwark_strike`, `skipping_flames` |
+    | **Dota Imba** | Full enhanced hero ability set (`imba_*` prefix for all heroes) |
+  </Accordion>
+</AccordionGroup>

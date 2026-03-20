@@ -1,0 +1,161 @@
+---
+title: 'commands.lua'
+description: 'Player chat commands: vote, debug, and cheat commands'
+icon: 'terminal'
+---
+
+## Overview
+
+`commands.lua` defines the `Commands` class and its single entry point `Commands:OnPlayerChat(keys)`. All player-typed commands are routed through this function.
+
+## Entry point
+
+### `Commands:OnPlayerChat(keys)`
+
+`keys.playerid` — the player who typed the message  
+`keys.text` — the raw chat string (lowercased before processing)
+
+```lua
+function Commands:OnPlayerChat(keys)
+    local playerID = keys.playerid
+    local text     = string.lower(keys.text)
+
+    local command
+    local arguments = {}
+
+    for k, v in pairs(util:split(text, " ")) do
+        if string.match(v, "-") then
+            command = v                              -- dash prefix → command token
+        elseif string.match(v, "#") then
+            playerID = tonumber(string.sub(v, 2))   -- hash prefix → target player ID
+        else
+            table.insert(arguments, v)              -- everything else → argument list
+        end
+    end
+
+    if not command or not playerID then return end
+    -- ...
+end
+```
+
+## Parsing rules
+
+| Token prefix | Meaning | Example |
+|---|---|---|
+| `-` | Command name | `-gold`, `-ar`, `-enablecheat` |
+| `#` | Target player ID | `#3` targets playerID 3 |
+| (none) | Positional argument | `500` after `-gold` sets the amount |
+
+You can target another player by including `#<playerID>` anywhere in the message:
+
+```
+-gold 500 #3
+```
+
+Use `-pid` first to discover player IDs.
+
+## The `IsCommand` closure
+
+Inside `OnPlayerChat`, a local closure is created to do prefix-matched command detection:
+
+```lua
+local function IsCommand(s)
+    local len = string.len(s)
+    return string.sub(command, 1, len) == s
+end
+```
+
+This means `-ar` matches `-antirat` and `-antirat` both match `IsCommand("-ar")`.
+
+## Vote commands
+
+Vote commands require a threshold percentage of players to accept before taking effect. They use `util:CreateVoting(...)` internally.
+
+| Command | Alias | Condition | Effect |
+|---------|-------|-----------|--------|
+| `-antirat` | `-ar` | `antiRat == 0` and cheat mode off | Enables anti-rat protection on Tier-3 towers |
+| `-doublecreeps` | `-dc` | `neutralMultiply < 2` | Doubles neutral camp spawns |
+| `-enablecheat` | `-ec` | Cheat mode not already on | Enables cheat mode for all players |
+| `-enablekamikaze` | `-ek` | Anti-kamikaze active | Disables the kamikaze death penalty |
+| `-enablebuilder` | `-eb` | Builder not enabled | Opens the ingame hero builder |
+| `-enablerespawn` | `-er` | Respawn limit active | Freezes escalating respawn times |
+| `-enablefat` | `-ef` | Fat-O-Meter off | Activates the Fat-O-Meter mechanic |
+| `-enablerefresh` | — | Refresh-on-death off | Refreshes cooldowns on death |
+| `-switchteam` | — | Team imbalance or single-player | Moves the player to the other team |
+
+**Vote thresholds** depend on the map:
+- `all_allowed` map: some votes require only **50 %** (e.g. `-antirat`, `-doublecreeps`, `-enablefat`, `-enablerefresh`)
+- All other maps: **100 %** required
+
+Example — anti-rat vote:
+
+```lua
+if IsCommand("-antirat") or IsCommand("-ar") then
+    if OptionManager:GetOption('antiRat') == 0 and not Ingame.voteEnabledCheatMode then
+        util:CreateVoting(
+            "lodVotingAntirat", playerID, 10,
+            OptionManager:GetOption('mapname') == 'all_allowed' and 50 or 100,
+            function()
+                OptionManager:SetOption('antiRat', 1)
+                Ingame:giveAntiRatProtection()
+                Ingame.voteAntiRat = true
+                EmitGlobalSound("Event.CheatEnabled")
+            end
+        )
+    elseif OptionManager:GetOption('antiRat') == 1 then
+        util:DisplayError(playerID, "#antiRatAlreadyOn")
+    end
+end
+```
+
+## Debug commands
+
+Always available regardless of cheat mode:
+
+| Command | Effect |
+|---------|--------|
+| `-test` | Sends a test message and prints the map name |
+| `-fixhero` | Re-spawns the player's hero with the correct build (fixes wisp-spawn edge case) |
+| `-printabilities` | Broadcasts all of the hero's current abilities to chat |
+| `-pid` | Lists every active player ID and hero name in chat |
+| `-fixcasting` | Removes and re-adds all talent abilities to fix stuck casting state |
+| `-bot mode` | Reports whether bots are in early- or late-game mode |
+| `gg` | Plays the `Memes.GG` sound when `memesRedux` is active |
+
+## Cheat commands
+
+Cheat commands are only available when `util:isSinglePlayerMode()` is `true` **or** `Ingame.voteEnabledCheatMode` is `true`.
+
+| Command | Alias | Effect |
+|---------|-------|--------|
+| `-gold [amount]` | — | Gives `amount` gold (default 100 000) |
+| `-points [n]` | — | Sets hero ability points to `n` (default 1) |
+| `-god` | — | Toggles `modifier_invulnerable` |
+| `-nofog` | — | Disables fog of war |
+| `-fog` | — | Re-enables fog of war |
+| `-aghs` | `-aghanim`, `-scepter` | Toggles Aghanim's Scepter consumed modifier |
+| `-regen` | — | Toggles fountain regen aura |
+| `-gem` | — | Toggles true sight aura |
+| `-invis` | — | Toggles permanent invisibility |
+| `-dif [level]` | — | Sets bot difficulty (1–4) |
+| `-reflect` | — | Toggles spell reflect |
+| `-spellblock` | — | Toggles spell block |
+| `-cooldown` | — | Toggles no-cooldown mode |
+| `-globalcast` | — | Toggles global cast range |
+| `-wtf` | `-wtfmenu` | Toggles WTF mode (no cooldowns/mana costs) |
+| `-unwtf` | — | Disables WTF mode |
+| `-lvlup [n]` | — | Levels hero up by `n` (default 1) |
+| `-lvlmax` | — | Instantly sets hero to maximum level |
+| `-item <name>` | — | Gives the named item (e.g. `item_blink`) |
+| `-addability <name>` | `-giveability`, `-add` | Gives the named ability |
+| `-removeability <name>` | `-remove` | Removes the named ability (use `all` to clear) |
+| `-dagger` | — | Gives the dev global-teleport dagger |
+| `-dagon` | — | Gives the dev ultra-dagon |
+| `-teleport` | — | Gives the dev teleport dagger |
+| `-startgame` | — | Forces the game clock to start |
+| `-respawn` | — | Instantly respawns the hero |
+| `-refresh` | — | Restores HP/mana and ends all cooldowns |
+| `-bot switch` | — | Toggles bots between early- and late-game AI |
+| `-fortify` | — | Fortifies all buildings for both teams |
+| `-fortify_dire` | — | Toggles fountain regen on all Dire buildings |
+| `-fortify_rad` | — | Toggles fountain regen on all Radiant buildings |

@@ -1,0 +1,180 @@
+---
+title: "Advanced options"
+description: "Configure hero count, ability slots, balance mode, bots, mutators, and more during the option selection phase."
+keywords: ["advanced options", "balance mode", "ability slots", "banning", "mutators", "bots", "universal shop", "turbo courier"]
+---
+
+Before heroes are picked, the host configures the game through the **option selection phase**. The phase lasts up to **5 minutes** (`maxOptionSelectionTime = 300`). On maps that use option voting (`useOptionVoting = true`), all players vote on settings instead.
+
+Options are organised into several tabs. The sections below cover each category.
+
+---
+
+<AccordionGroup>
+
+  <Accordion icon="sliders" title="Hero and ability slots">
+    These options define how many abilities each hero can carry.
+
+    | Option | Default | Range | Description |
+    |---|---|---|---|
+    | Total slots | 6 | 4–12 | The total number of ability slots available per hero. |
+    | Normal skill slots | 6 | 0–12 | The maximum number of non-ultimate abilities. |
+    | Ultimate slots | 2 | 0–12 | The maximum number of ultimate abilities. |
+
+    Slot counts are set via `lodOptionCommonMaxSlots`, `lodOptionCommonMaxSkills`, and `lodOptionCommonMaxUlts` in `optionmanager.lua`. Changing total slots does not automatically change the skill/ult split — set all three together for predictable results.
+
+    <Tip>
+      The `all_allowed` map hard-codes `maxUlts = 2` and `maxSlots = 6`. These cannot be changed by voting on that map.
+    </Tip>
+  </Accordion>
+
+  <Accordion icon="scale" title="Balance mode">
+    Balance mode assigns a point budget to each player. More powerful abilities cost more points, which limits "greedy" builds that stack only high-tier skills.
+
+    | Setting | Key | Default |
+    |---|---|---|
+    | Balance mode enabled | `lodOptionBalanceMode` | `0` (off) |
+    | Point budget (normal) | `lodOptionBalanceModePoints` | `120` |
+    | Point budget (doubled) | `lodOptionBalanceModePoints` | `180` |
+    | Balance ban list | `lodOptionBanningBalanceMode` | `0` (off) |
+
+    Enabling **Doubled Ability Points** raises the budget to 180 and turns on the balance ban list automatically (unless playing co-op). The `3_vs_3` map enables balance mode by default.
+  </Accordion>
+
+  <Accordion icon="ban" title="Banning system">
+    The banning phase lets players remove abilities and heroes before picks begin.
+
+    | Option | Default | Notes |
+    |---|---|---|
+    | Banning mode | `lodOptionBanning = 3` | Controls which banning ruleset is used. |
+    | Max ability bans | 0 | Can be raised up to 100. Classic map defaults to 3. |
+    | Max hero bans | 0 | Can be raised up to 2. Classic map defaults to 2. |
+    | Block troll combos | On | Always enabled (`lodOptionBanningBlockTrollCombos = 1`). |
+    | Use ban list | On | Excludes single-player abilities from standard games. |
+    | Ban all invisibility | Off | Bans all abilities tagged as invisibility (`lodOptionBanningBanInvis`). |
+
+    The classic map pre-configures 3 ability bans and 2 hero bans per team with a **50-second** banning timer. Custom maps let the host set these freely.
+  </Accordion>
+
+  <Accordion icon="zap" title="Ability pool">
+    Control which categories of abilities are available to pick.
+
+    | Option | Key | Default |
+    |---|---|---|
+    | Hero abilities | `lodOptionAdvancedHeroAbilities` | On |
+    | Neutral abilities | `lodOptionAdvancedNeutralAbilities` | On |
+    | Custom abilities | `lodOptionAdvancedCustomSkills` | Off |
+    | OP abilities | `lodOptionAdvancedOPAbilities` | Off (ban list on) |
+    | IMBA abilities | `lodOptionAdvancedImbaAbilities` | Off |
+    | Item modifiers (passives) | `lodOptionAdvancedItemModifiers` | On |
+    | Bear / Lone Druid abilities | `allowBearSkills` | Off |
+    | Tower abilities | `allowTowerSkills` | Off |
+    | Creep abilities | `allowCreepSkills` | Off |
+    | Building abilities | `allowBuildingSkills` | Off |
+
+    The `all_allowed` map enables OP abilities by default. Single-player mode lifts the ban list entirely, enabling single-player-only abilities.
+  </Accordion>
+
+  <Accordion icon="gauge" title="Game speed and economy">
+    | Option | Key | Default | Notes |
+    |---|---|---|---|
+    | Starting level | `lodOptionGameSpeedStartingLevel` | 1 | Range: 1–100. `all_allowed` starts at 4. |
+    | Max hero level | `lodOptionGameSpeedMaxLevel` | 30 | `all_allowed` and `classic` use 100. |
+    | Bonus starting gold | `lodOptionGameSpeedStartingGold` | 0 | Up to 100,000 extra gold. |
+    | Gold modifier | `lodOptionGameSpeedGoldModifier` | 100% | Scales passive gold income. |
+    | EXP modifier | `lodOptionGameSpeedEXPModifier` | 100% | Scales all XP gained. |
+    | Shared XP | `lodOptionGameSpeedSharedEXP` | Off | `all_allowed` enables this. |
+    | Respawn time | `lodOptionGameSpeedRespawnTimePercentage` | 70% | `all_allowed` and `classic` use 35%. |
+    | Buyback cooldown | `lodOptionBuybackCooldownTimeConstant` | 420 s | |
+    | Towers per lane | `lodOptionGameSpeedTowersPerLane` | 3 | Up to 10 towers per lane. |
+    | Strong towers | `lodOptionGameSpeedStrongTowers` | Off | `all_allowed` enables this. |
+    | Upgraded ultimates | `lodOptionGameSpeedUpgradedUlts` | Off | Starts heroes with Scepter-upgraded ults. |
+  </Accordion>
+
+  <Accordion icon="sparkles" title="Mutators">
+    Mutators are optional rule modifiers that can be toggled per game. Most are off by default.
+
+    | Mutator | Key | Effect |
+    |---|---|---|
+    | Fast Runes | `lodOptionFastRunes` | Runes spawn more frequently. |
+    | Periodic Spell Cast | `lodOptionPeriodicSpellCast` | Abilities fire automatically at intervals. |
+    | Vampirism | `lodOptionVampirism` | All attacks and abilities have lifesteal. |
+    | Killstreak Power | `lodOptionKillStreakPower` | Bonus damage per kill in a streak. |
+    | Cooldown Reduction | `lodOptionCooldownReduction` | Global cooldown reduction applied. |
+    | Explode on Death | `lodOptionExplodeOnDeath` | Heroes explode on death, dealing AoE damage. |
+    | Gold Drop on Death | `lodOptionGoldDropOnDeath` | Heroes drop a gold bag when killed. |
+    | Resurrect Allies | `lodOptionResurrectAllies` | Allies revive nearby fallen teammates. |
+    | Random Lane Creeps | `lodOptionRandomLaneCreeps` | Lane creep types are randomized each wave. |
+    | No Healthbars | `lodOptionNoHealthbars` | Hides all health bars. |
+    | Convertable Towers | `lodOptionConvertableTowers` | Towers can be captured and converted. |
+    | WTF Mode | `lodOptionCrazyWTF` | No cooldowns or mana costs. |
+    | Multicast Madness | `lodOptionCrazyMulticast` | All spells multicast randomly. |
+    | Free Scepter | `lodOptionGameSpeedUpgradedUlts` | All heroes start with Aghanim's Scepter upgrade. |
+    | Fat-O-Meter | `lodOptionCrazyFatOMeter` | Heroes grow larger as the game progresses. |
+    | Gotta Go Fast | `lodOptionGottaGoFast` | Increased movement speed for all units. |
+    | Battle Thirst | `lodOptionBattleThirst` | Bonus stats for killing enemies. |
+    | Memes Redux | `lodOptionMemesRedux` | Enables meme sounds and effects. |
+    | Free Creep Ability | `lodOptionExtraAbility` | Each hero gets a free bonus creep ability. |
+    | Random on Death | `lodOptionRandomOnDeath` | Hero's abilities are re-randomized on death. |
+
+    Some mutators are restricted to Patreon supporters in the main UI but can still be set through advanced options.
+  </Accordion>
+
+  <Accordion icon="store" title="Shop and items">
+    | Option | Key | Default | Notes |
+    |---|---|---|---|
+    | Universal shop | `lodOptionTurboCourier` (tied) | Off | Voting for Universal Shop also enables Turbo Courier (v11.2). |
+    | Turbo courier | `lodOptionTurboCourier` | Off | Courier moves at maximum speed. |
+    | Consumable items | `lodOptionConsumeItems` | On | Allows consumable item variants. |
+    | Full-price sellback | `lodOptionGameSpeedFullPriceSellback` | Off | Items sell for 100% of purchase price. |
+    | Item stacking | `lodOptionStacking` | Off | Allows items to stack in the same slot. |
+    | Neutral items | `neutralItems` | Off | Enables/disables neutral item drops. |
+
+    <Info>
+      Universal shop is always enabled at the game-mode level (`GameRules:SetUseUniversalShopMode(true)`), but the voting option controls whether players can actually access the secret shop items without visiting the shop building.
+    </Info>
+  </Accordion>
+
+  <Accordion icon="robot" title="Bot settings">
+    Configure how many bots appear on each team and how they behave.
+
+    | Option | Key | Default | Notes |
+    |---|---|---|---|
+    | Radiant bots | `lodOptionBotsRadiant` | 0 | Number of bots to add to Radiant. |
+    | Dire bots | `lodOptionBotsDire` | 0 | Number of bots to add to Dire. |
+    | Radiant difficulty | `lodOptionBotsRadiantDiff` | 2 (Medium) | 1 = Passive, 2 = Easy, 3 = Medium, 4 = Hard, 5 = Unfair. |
+    | Dire difficulty | `lodOptionBotsDireDiff` | 2 (Medium) | Same scale as above. |
+    | Unique hero skills | `lodOptionBotsUniqueSkills` | On | Bots avoid duplicate abilities. |
+    | Bonus points for bots | `lodOptionBotsBonusPoints` | On | Bots receive extra balance points. |
+    | Stupify bots | `lodOptionBotsStupid` | Off | Bots will not attack or use abilities. |
+    | Duplicate bots | `lodOptionBotsUnique` | Off | Allows multiple bots to share the same hero. |
+    | Same hero for all bots | `lodOptionBotsSameHero` | Off | All bots are assigned the same hero. |
+
+    See [Bot support](/modes/bot-support) for a full guide on setting up bot games.
+  </Accordion>
+
+  <Accordion icon="user-check" title="Unique picks and hidden picks">
+    | Option | Key | Options |
+    |---|---|---|
+    | Unique skills | `lodOptionAdvancedUniqueSkills` | Off / Per team / Global |
+    | Unique heroes | `lodOptionAdvancedUniqueHeroes` | Off / On |
+    | Hide enemy picks | `lodOptionAdvancedHidePicks` | Off / On |
+    | Select primary attribute | `lodOptionAdvancedSelectPrimaryAttr` | On by default |
+
+    Enabling global unique skills prevents any two players from picking the same ability across both teams.
+  </Accordion>
+
+  <Accordion icon="swords" title="Creep and tower settings">
+    | Option | Key | Default | Notes |
+    |---|---|---|---|
+    | Creep power | `lodOptionCreepPower` | 0 | Scales lane creep stats. `all_allowed` uses 120. |
+    | Neutral creep power | `lodOptionNeutralCreepPower` | 0 | Scales neutral camp stats. |
+    | Neutral multiply | `lodOptionNeutralMultiply` | 1x | Multiplies neutral camp count. |
+    | Lane multiply | `lodOptionLaneMultiply` | Off | Increases lane creep wave size. |
+    | Lane creep bonus ability | `lodOptionLaneCreepBonusAbility` | Off | Gives lane creeps a random ability. |
+    | Anti-rat | `lodOptionAntiRat` | Off | Tier 3 towers are invulnerable until outer towers fall. |
+    | Anti-bash | `lodOptionAntiBash` | On | Limits stun duration stacking. |
+    | No fountain camping | `lodOptionCrazyNoCamping` | On | Prevents heroes from sitting in the enemy fountain. |
+  </Accordion>
+
+</AccordionGroup>

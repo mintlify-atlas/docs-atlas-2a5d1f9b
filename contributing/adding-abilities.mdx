@@ -1,0 +1,133 @@
+---
+title: "Adding abilities"
+description: "Step-by-step guide to adding a new ability to Legends of Dota Redux."
+---
+
+Abilities in Legends of Dota Redux are defined across several files: a Lua script for logic, KV data files for configuration, and registration in `pregame.lua` for any modifiers. Follow the steps below to add a new ability from scratch.
+
+<Steps>
+  <Step title="Create the Lua file">
+    Add a new `.lua` file in `src/game/scripts/vscripts/abilities/`. Name it after the ability using snake_case, matching the ability's internal name.
+
+    ```
+    src/game/scripts/vscripts/abilities/my_new_ability.lua
+    ```
+
+    If your ability uses a Lua-defined modifier, declare it with `LinkLuaModifier` at the top of the file. This registers the modifier class so the engine can find it at runtime.
+
+    Here is an example from `basic_stat_bonus.lua`, which defines an intrinsic passive modifier:
+
+    ```lua abilities/basic_stat_bonus.lua
+    basic_stat_bonus = class({})
+
+    modifier_basic_stat_bonus = class({})
+
+    LinkLuaModifier("modifier_basic_stat_bonus", "abilities/basic_stat_bonus.lua", LUA_MODIFIER_MOTION_NONE)
+
+    function basic_stat_bonus:GetIntrinsicModifierName()
+        return "modifier_basic_stat_bonus"
+    end
+
+    function modifier_basic_stat_bonus:IsPermanent() return true end
+    function modifier_basic_stat_bonus:IsHidden() return true end
+
+    function modifier_basic_stat_bonus:DeclareFunctions()
+        return { MODIFIER_PROPERTY_STATS_STRENGTH_BONUS, MODIFIER_PROPERTY_STATS_AGILITY_BONUS, MODIFIER_PROPERTY_STATS_INTELLECT_BONUS }
+    end
+
+    function modifier_basic_stat_bonus:GetModifierBonusStats_Strength()
+        if self:GetCaster():PassivesDisabled() then return 0 end
+        return self:GetAbility():GetSpecialValueFor("stat_bonus")
+    end
+    ```
+
+    For event-driven abilities (spells with `OnSpellStart`, kill events, etc.), you define plain functions without a class structure. See `arcane_mastery.lua` for a minimal example:
+
+    ```lua abilities/arcane_mastery.lua
+    function onSpellStart(event)
+        local caster = event.caster
+        local ability = event.ability
+
+        if caster:HasModifier("modifier_custom_arcane_mastery") then
+            caster:RemoveModifierByName("modifier_custom_arcane_mastery")
+        end
+
+        ability:ApplyDataDrivenModifier(caster, caster, "modifier_custom_arcane_mastery", nil)
+    end
+
+    function onHeroKill(event)
+        local caster = event.caster
+        local cooldownReduction = event.ability:GetSpecialValueFor("cooldownReduction")
+
+        for i = 0, caster:GetAbilityCount() - 1 do
+            local ability = caster:GetAbilityByIndex(i)
+            if ability ~= nil and ability ~= event.ability then
+                local timeLeft = ability:GetCooldownTimeRemaining()
+                ability:EndCooldown()
+                ability:StartCooldown(timeLeft - cooldownReduction)
+            end
+        end
+    end
+    ```
+  </Step>
+
+  <Step title="Register the ability in npc_abilities_custom.txt">
+    Define the ability's KV data in the custom abilities file. This is where you set ability type, behavior, damage type, special values, and references to the Lua script.
+
+    The `ScriptFile` key points to your Lua file relative to `vscripts/`:
+
+    ```
+    "my_new_ability"
+    {
+        "BaseClass"         "ability_lua"
+        "ScriptFile"        "abilities/my_new_ability.lua"
+        "AbilityBehavior"   "DOTA_ABILITY_BEHAVIOR_PASSIVE"
+
+        "AbilitySpecial"
+        {
+            "01"
+            {
+                "var_type"      "FIELD_INTEGER"
+                "stat_bonus"    "5 10 15 20"
+            }
+        }
+    }
+    ```
+  </Step>
+
+  <Step title="Add the ability to abilities.kv">
+    `src/game/scripts/kv/abilities.kv` controls which abilities appear on the ability selection screen and what bracket (category) they fall into.
+
+    Add your ability to the appropriate bracket. The brackets represent power tiers shown in the selection UI. Refer to the existing entries in `abilities.kv` to choose the right bracket for the ability's strength.
+
+    ```
+    "my_new_ability"    "1"
+    ```
+
+    The value corresponds to the bracket number defined in `abilities.kv`. See the [abilities.kv reference](/reference/abilities-kv) for the full list of brackets.
+  </Step>
+
+  <Step title="Add to bans.kv if needed">
+    If your ability creates a problematic or unplayable combination with another ability, add a ban entry to `src/game/scripts/kv/bans.kv`.
+
+    Most combination bans are now handled with `ReduxBans` flags directly in the ability's KV data in `npc_abilities_custom.txt`, which is the preferred approach. The `bans.kv` file is used for special cases: group bans (where three or more abilities together are banned), or combinations that cannot be expressed as simple pairwise flags.
+
+    See the [bans.kv reference](/reference/bans-kv) for the format.
+  </Step>
+
+  <Step title="Register modifiers in pregame.lua">
+    If your ability defines one or more Lua modifiers with `LinkLuaModifier`, you must also require the ability file in `pregame.lua` so the modifiers are available during the pregame phase.
+
+    In `src/game/scripts/vscripts/pregame.lua`, add a `require` call alongside the existing ability requires:
+
+    ```lua pregame.lua
+    require('abilities/my_new_ability')
+    ```
+
+    This ensures `LinkLuaModifier` runs at startup and the engine can instantiate your modifier class.
+  </Step>
+</Steps>
+
+<Tip>
+  Run `npm run check` before committing to verify your files pass the Prettier formatting check.
+</Tip>

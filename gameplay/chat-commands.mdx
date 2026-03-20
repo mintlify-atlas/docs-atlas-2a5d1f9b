@@ -1,0 +1,47 @@
+---
+title: Chat commands
+description: In-game chat commands that any player can use. Most commands initiate a vote that requires agreement from all (or a percentage of) players before taking effect.
+---
+
+Chat commands are typed directly into the in-game chat box and begin with a `-` character. Most commands trigger a **vote** that is broadcast to the lobby. A configurable percentage of players must accept before the effect is applied.
+
+You can also target a specific player by appending `#<playerID>` to your message (use `-pid` to find player IDs).
+
+## Vote commands
+
+These commands are available to all players at any time during the game.
+
+| Command | Shorthand | Description | Requirements |
+|---------|-----------|-------------|------------------|
+| `-antirat` | `-ar` | Enables anti-rat protection. Tier 3 towers cannot be destroyed until all preceding towers are gone. | Requires a vote. On the `all_allowed` map, 50% approval is enough; otherwise 100% is required. Cannot be enabled if cheat mode is already active. |
+| `-doublecreeps` | `-dc` | Doubles neutral creep camp spawns for the rest of the game. | Requires a vote. 70% approval on `all_allowed`, 100% otherwise. Cannot be enabled if neutral multiply is already above 1×. |
+| `-enablecheat` | `-ec` | Enables cheat mode for the lobby. Required before most cheat commands can be used. | Requires **100% vote approval** from all players. Cannot be re-enabled if already active or if `sv_cheats` is on. |
+| `-enablekamikaze` | `-ek` | Disables the anti-Kamikaze mechanic. By default, dying 3 times within 60 seconds applies a penalty; this vote removes that penalty. | Requires 100% vote approval. |
+| `-enablebuilder` | `-eb` | Allows all players to modify their hero build mid-game via the Ingame Hero Builder panel. A 30-gold-per-second penalty applies if both teams have human players. | Requires 100% vote approval. |
+| `-enablerespawn` | `-er` | Disables the escalating respawn time mechanic. After 40 minutes respawn timers normally increase; this vote locks them at the original rate. | Requires 100% vote approval. |
+| `-enablefat` | `-ef` | Activates the Fat-O-Meter, a cosmetic feature that scales hero models larger as they gain kills or levels. | Requires a vote. 50% on `all_allowed`, 100% otherwise. |
+| `-enablerefresh` | — | Enables cooldown refresh on death for all players. | Requires a vote. 50% on `all_allowed`, 100% otherwise. |
+| `-switchteam` | — | Moves the requesting player to the opposing team. Only available when a team imbalance is detected or in single-player mode. Within the first 20 minutes only 50% approval is required; after that 100% is needed. | Requires a vote and a detected team imbalance (or single-player/tools mode). |
+
+## Informational commands
+
+These commands do not require a vote and take effect immediately.
+
+| Command | Description |
+|---------|-------------|
+| `-pid` | Prints every connected player's hero name and player ID to the in-game chat. Useful for targeting specific players with cheat commands. |
+| `-bot mode` | Reports whether bots are currently in early-game or late-game AI mode. |
+
+## Debug commands
+
+These commands are primarily useful for diagnosing build or casting issues.
+
+| Command | Description |
+|---------|-------------|
+| `-fixhero` | Forces a hero re-spawn if the hero model does not match the selected hero after the Wisp spawning phase. |
+| `-fixcasting` | Removes and re-adds all talents on your hero. Use this if some of your abilities stop casting correctly after a build change. |
+| `-printabilities` | Prints all ability names, hidden state, and activation state for your current hero to the chat. |
+
+<Note>
+All chat input is converted to lower case before parsing. Commands are matched by prefix — `-ar` works because the parser checks whether your input starts with `-ar`.
+</Note>

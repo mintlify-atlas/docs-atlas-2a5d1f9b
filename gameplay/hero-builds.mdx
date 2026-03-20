@@ -1,0 +1,69 @@
+---
+title: Hero builds
+description: How to construct a hero build in Legends of Dota Redux — choosing a hero, picking abilities, using Balance Mode, and saving or loading builds.
+---
+
+A **hero build** in Legends of Dota Redux is the combination of a hero body and a set of chosen abilities. Because abilities are decoupled from heroes, you can place almost any ability on any hero and create combinations that do not exist in standard Dota 2.
+
+## Build structure
+
+A build consists of:
+
+- **Hero** — the body your abilities sit on. The hero determines base stats, stat growth, attack animation, model, and any built-in perk granted by the hero-perks system.
+- **Ability slots** — the standard Q/W/E/R slots plus any bonus slots allowed by the current options. Each slot holds one ability.
+- **Passive limit** — some map options cap the number of passive abilities you may include. Abilities flagged as semi-passives may be treated differently.
+- **Balance Mode budget** — when Balance Mode is active, the combined point cost of all chosen abilities must not exceed **120 points**.
+
+## Choosing a hero
+
+During `PHASE_SELECTION` you pick your hero from the hero pool. Heroes can be banned during the banning phase, which removes them from the pool. The hero you choose affects:
+
+- Base attributes and stat growth
+- Hero perks (unique passive bonuses defined in `scripts/kv/hero_perks.kv`)
+- Model scale for cosmetic effects like the Fat-O-Meter
+- Certain ability synergies (e.g. Invoker's Invoke mechanic)
+
+## Picking abilities
+
+With a hero selected you move to ability selection. The pick UI shows the full ability list filtered by the categories defined in `scripts/kv/abilities.kv`. Use the category filters to narrow the list:
+
+<Steps>
+  <Step title="Filter by category">
+    Use the category tabs (nukes, stuns, passives, ultimates, etc.) to narrow the ability list to the type of spell you want.
+  </Step>
+  <Step title="Check point cost">
+    If Balance Mode is on, the ability's point cost is shown. Keep a running total against your 120-point budget.
+  </Step>
+  <Step title="Watch for troll-combo warnings">
+    If a selected ability would form a banned combination with one you already have, the UI will block the pick and highlight the conflict.
+  </Step>
+  <Step title="Fill all slots">
+    Repeat until all your ability slots are filled. You can deselect an ability to swap it out before locking in.
+  </Step>
+</Steps>
+
+## Balance Mode
+
+Balance Mode assigns a point cost to every ability. Your total spend across all slots must be **120 points or fewer**.
+
+The constant is defined in `constants.lua`:
+
+```lua
+Constants.BALANCE_MODE_POINTS = 120
+```
+
+Higher-impact abilities (powerful ultimates, near-broken passives) have higher costs. This forces build diversity and prevents a single player from stacking every top-tier spell.
+
+## Saving and loading builds
+
+The game supports persisting builds between sessions. When you lock in a build the server stores it under your Steam account. On your next match you can load a saved build to skip the selection process, or use it as a starting point and adjust individual slots.
+
+Builds are stored server-side. The build backup system is initialised in `pregame.lua` (`local buildBackups = {}`). Saved builds respect the current option set — a build saved with Balance Mode off may not be loadable when Balance Mode is on if its point total exceeds the cap.
+
+## Ingame Hero Builder
+
+If all players vote to enable the Ingame Hero Builder (via the `-enablebuilder` chat vote), you can modify your build mid-match. A penalty of **30 gold per second** applies when both teams have active human players, to discourage abusing the feature during live play.
+
+<Warning>
+Changing your build mid-game via the Ingame Hero Builder may cause some ability interactions or talent associations to behave unexpectedly. Use `-fixcasting` in chat if your abilities stop functioning after a build change.
+</Warning>

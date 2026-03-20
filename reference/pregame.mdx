@@ -1,0 +1,170 @@
+---
+title: 'pregame.lua'
+description: 'The pre-game hero and skill selection module'
+icon: 'wand-magic-sparkles'
+---
+
+## Overview
+
+`pregame.lua` is the most important file in Redux. It handles everything that happens before the game clock starts: the lobby phase, hero selection, skill selection, banning, draft arrays, contributor/patron loading, and the initial spawn of heroes.
+
+The file also bootstraps the entire scripting layer — it calls `require` for every other module and registers all Lua modifiers with `LinkLuaModifier`.
+
+## The `Pregame` class
+
+`Pregame` is a Lua class defined with Valve's `class({})` helper:
+
+```lua
+Pregame = class({})
+```
+
+All functionality is added as methods on this singleton. The class is instantiated and `Pregame:init()` is called from `addon_game_mode.lua` when the server first activates.
+
+## KV loading
+
+Before `Pregame:init()` runs, the top level of `pregame.lua` populates `GameRules.KVs` with every KeyValues file the game needs:
+
+```lua
+GameRules.KVs = {}
+GameRules.KVs["npc_abilities"]          = util.abilityKVs
+GameRules.KVs["npc_abilities_custom"]   = LoadKeyValues('scripts/npc/npc_abilities_custom.txt')
+GameRules.KVs["npc_abilities_override"] = LoadKeyValues('scripts/npc/npc_abilities_override.txt')
+GameRules.KVs.herolist                  = LoadKeyValues('scripts/npc/herolist.txt')
+GameRules.KVs.abilitylist              = LoadKeyValues('scripts/kv/abilities.kv')
+```
+
+Other modules access ability data through `GameRules.KVs["npc_abilities"]` or via `util:getAbilityKV()`.
+
+## Modifier registration
+
+All Lua-backed modifiers are registered at the top of `pregame.lua` before any unit can be given one:
+
+```lua
+LinkLuaModifier("modifier_neutral_power",
+    "abilities/modifiers/modifier_neutral_power.lua",
+    LUA_MODIFIER_MOTION_NONE)
+
+LinkLuaModifier("modifier_vampirism_mutator",
+    "abilities/mutators/modifier_vampirism_mutator.lua",
+    LUA_MODIFIER_MOTION_NONE)
+
+LinkLuaModifier("modifier_hunter_mutator",
+    "abilities/mutators/modifier_hunter_mutator.lua",
+    LUA_MODIFIER_MOTION_NONE)
+-- ... (all mutator modifiers follow the same pattern)
+```
+
+## `Pregame:init()`
+
+Initialises all pregame state. Called once at game start.
+
+```lua
+function Pregame:init()
+    -- Shared option store
+    self.optionStore = {}
+
+    -- Write the current map name into OptionManager
+    OptionManager:SetOption('mapname', GetMapName())
+
+    -- Redirect single-player lobbies to bot mode
+    if util:isSinglePlayerMode() and not IsInToolsMode() then
+        CustomNetTables:SetTableValue('phase_pregame', 'forceBots', {value=true})
+    end
+
+    -- Hero / skill selection state
+    self.selectedHeroes       = {}
+    self.selectedPlayerAttr   = {}
+    self.selectedSkills       = {}
+    self.selectedRandomBuilds = {}
+
+    -- Draft configuration
+    self.useDraftArrays   = false
+    self.maxDraftHeroes   = 30
+    self.maxDraftSkills   = 0
+
+    -- Ban tracking
+    self.bannedAbilities  = {}
+    self.bannedHeroes     = {}
+    self.usedBans         = {}
+    self.playerBansList   = {}
+
+    -- Ready state
+    self.isReady          = {}
+
+    -- Load sound list
+    self.soundList = util:swapTable(LoadKeyValues('scripts/kv/sounds.kv'))
+
+    -- Begin data fetch and move to loading phase
+    self:preparePlayerDataFetch()
+    self:setPhase(constants.PHASE_LOADING)
+
+    -- Disable automatic game-setup launch
+    GameRules:SetCustomGameSetupTimeout(-1)
+    GameRules:EnableCustomGameSetupAutoLaunch(false)
+
+    -- Send contributor / patron data to clients
+    self:sendContributors()
+    self:sendPatrons()
+    self:sendPatreonFeatures()
+end
+```
+
+## Key instance fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `optionStore` | table | Per-session option overrides |
+| `selectedHeroes` | table | Maps `playerID → heroName` |
+| `selectedPlayerAttr` | table | Maps `playerID → primary attribute` |
+| `selectedSkills` | table | Maps `playerID → {abilityName, ...}` |
+| `selectedRandomBuilds` | table | Builds generated for random picks |
+| `bannedAbilities` | table | Set of banned ability names |
+| `bannedHeroes` | table | Set of banned hero names |
+| `usedBans` | table | Number of bans used per player |
+| `isReady` | table | Maps `playerID → bool` |
+| `useDraftArrays` | bool | Whether the draft whitelist is active |
+| `maxDraftHeroes` | number | Max heroes offered in a draft (default 30) |
+| `spawnedHeroesFor` | table | Player IDs whose heroes have already spawned |
+
+## Vote option presets
+
+`Pregame:init()` also populates `self.optionVoteSettings` with preset lambdas for common game-mode votes. For example:
+
+```lua
+self.optionVoteSettings = {
+    allPick = {
+        onselected = function(self)
+            self:setOption('lodOptionGamemode', 1, true)
+            self:setOption('lodOptionLimitPassives', 1, true)
+            self:setOption('lodOptionBalanceMode', 0, true)
+        end,
+        onunselected = function(self)
+            self:setOption('lodOptionGamemode', 5, true)
+        end
+    },
+    -- ... additional presets
+}
+```
+
+## Function reference
+
+<AccordionGroup>
+  <Accordion title="Pregame:init()">
+    Bootstraps all pregame state, sets the loading phase, and dispatches contributor/patron data to clients. Called once by `addon_game_mode.lua`.
+  </Accordion>
+  <Accordion title="Pregame:setPhase(phase)">
+    Transitions the game to the given phase constant (e.g. `constants.PHASE_LOADING`, `constants.PHASE_SELECTION`). Broadcasts the new phase to all clients via net tables.
+  </Accordion>
+  <Accordion title="Pregame:preparePlayerDataFetch()">
+    Begins an async HTTP request to fetch historical player data (win rates, abandons) used for display in the pre-game UI.
+  </Accordion>
+  <Accordion title="Pregame:sendContributors() / sendPatrons() / sendPatreonFeatures()">
+    Pushes contributor, patron, and Patreon feature lists loaded from KV files to the Panorama UI via `CustomNetTables`.
+  </Accordion>
+  <Accordion title="Pregame:setOption(key, value, noNetwork)">
+    Writes `key → value` into `self.optionStore` and (unless `noNetwork` is true) broadcasts the change to all clients.
+  </Accordion>
+  <Accordion title="Pregame:onIngameBuilder(type, keys)">
+    Handles a request from the Panorama ingame hero builder. Respawns the player's hero with the new build when `keys.ingamePicking` is `true`.
+  </Accordion>
+</AccordionGroup>

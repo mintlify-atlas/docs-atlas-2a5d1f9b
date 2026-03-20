@@ -1,0 +1,128 @@
+---
+title: "Installation"
+description: "Set up a local development environment for Legends of Dota Redux — clone the repository, link it to your Dota 2 installation, and launch the game in tools mode."
+keywords: ["installation", "development", "setup", "clone", "contributors"]
+---
+
+This guide is for contributors who want to modify the game's source code — adding abilities, fixing bugs, or working on the Panorama UI. If you only want to play, see the [quickstart](/quickstart) instead.
+
+<Info>
+  **Prerequisites**
+  - [Dota 2](https://www.dota2.com) installed via Steam
+  - [Node.js](https://nodejs.org) v14 or higher
+  - [Git](https://git-scm.com)
+  - A Windows machine (the launch script targets `dota2.exe` in the `win64` directory)
+</Info>
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Legends of Dota Redux source from GitHub:
+
+    ```bash
+    git clone https://github.com/DarkoniusXNG/Legends-of-Dota-Redux.git
+    cd Legends-of-Dota-Redux
+    ```
+
+    The repository contains both the game source (`src/`) and the build tooling (`scripts/`) needed to link your working directory into Dota 2.
+  </Step>
+
+  <Step title="Install dependencies and link the addon">
+    Run `npm install` from the repository root:
+
+    ```bash
+    npm install
+    ```
+
+    This installs the project's dev dependencies and automatically runs `scripts/install.js` via the `postinstall` hook. The install script:
+
+    1. Locates your Dota 2 installation using Steam's app registry
+    2. Moves the `src/game` and `src/content` directories into Dota's `dota_addons` folder
+    3. Creates symbolic links (junctions on Windows) back to those locations so edits in your working directory are immediately reflected in Dota
+
+    You will see output similar to:
+
+    ```
+    Linked /path/to/repo/src/game <==> /path/to/Steam/dota 2 beta/game/dota_addons/legends_of_dota_redux
+    Linked /path/to/repo/src/content <==> /path/to/Steam/dota 2 beta/content/dota_addons/legends_of_dota_redux
+    ```
+
+    <Note>
+      If the script prints `No Dota 2 installation found. Addon linking is skipped.`, it could not locate Dota via Steam. Make sure Dota 2 is installed and Steam is present on your system before running `npm install`.
+    </Note>
+
+    <Warning>
+      If `scripts/install.js` finds a `dota_addons/legends_of_dota_redux` directory that is already linked to a **different** path, it will throw an error rather than overwrite it. Remove or unlink the existing directory before re-running.
+    </Warning>
+  </Step>
+
+  <Step title="Launch Dota 2 in tools mode">
+    Once the addon is linked, start Dota 2 with the custom game loaded in tools (development) mode:
+
+    ```bash
+    npm run launch
+    ```
+
+    This runs `scripts/launch.js`, which:
+
+    1. Resolves your Dota 2 installation path via Steam
+    2. Starts `dota2.exe` with the `-tools` and `-addon legends_of_dota_redux` flags
+
+    Dota 2 opens in tools mode with the Redux addon active. From here you can use the Dota Workshop Tools to test map changes, run the game locally, and iterate on scripts without publishing to the Workshop.
+
+    <Tip>
+      Tools mode enables the in-game Lua console, hot-reloading for Panorama files, and access to the asset editor. Use `dota_launch_custom_game legends_of_dota_redux dota` in the console to start a local lobby.
+    </Tip>
+  </Step>
+</Steps>
+
+## Project structure
+
+Familiarise yourself with the key directories before making changes:
+
+| Path | Contents |
+|---|---|
+| `src/game/scripts/vscripts/` | Server-side Lua scripts (game logic, pregame, ingame) |
+| `src/game/scripts/npc/` | KV data files for abilities, items, and units |
+| `src/content/` | Panorama UI files (TypeScript/CSS/XML) |
+| `scripts/` | Node.js build and setup scripts |
+
+### Key scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/install.js` | Links `src/game` and `src/content` into the Dota addon directory |
+| `scripts/launch.js` | Starts Dota 2 with `-tools -addon legends_of_dota_redux` |
+| `scripts/utils.js` | Shared helpers — resolves the addon name from `package.json` and finds the Steam Dota path |
+
+## Code quality
+
+The project uses [Prettier](https://prettier.io) to enforce consistent formatting. A pre-commit hook runs Prettier automatically on staged files via [Husky](https://typicode.com/husky).
+
+To check formatting across the entire codebase without committing:
+
+```bash
+npm run check
+```
+
+To format files manually:
+
+```bash
+npx prettier --write .
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Adding abilities" icon="bolt" href="/contributing/adding-abilities">
+    Learn how to write a new custom ability and register it with the Redux ability system.
+  </Card>
+  <Card title="VScripts overview" icon="code" href="/reference/vscripts-overview">
+    Understand the Lua scripting layer — which files do what and how they interact.
+  </Card>
+  <Card title="Contributing guidelines" icon="code-pull-request" href="/contributing/setup">
+    Read the contribution workflow before opening a pull request.
+  </Card>
+  <Card title="Credits" icon="users" href="/contributing/credits">
+    Meet the developers and contributors behind Redux.
+  </Card>
+</CardGroup>

@@ -1,0 +1,294 @@
+---
+title: 'util.lua'
+description: 'General-purpose utility functions used across the Redux scripting layer'
+icon: 'wrench'
+---
+
+## Overview
+
+`util.lua` defines the global `util` singleton and a collection of helper functions used by every other module. It is always the first script loaded (other files guard with `if not util then require('util') end`).
+
+```lua
+if not util then
+    util = class({})
+end
+```
+
+The module also bootstraps some global KV data that other modules rely on:
+
+```lua
+util.contributors      = LoadKeyValues('scripts/kv/contributors.kv')
+util.patrons           = LoadKeyValues('scripts/kv/patrons.kv')
+util.patreon_features  = LoadKeyValues('scripts/kv/patreon_features.kv')
+```
+
+## String utilities
+
+### `util:split(pString, pPattern)`
+
+Splits `pString` on the Lua pattern `pPattern` and returns a sequential table of tokens. This is the primary split function used for command parsing.
+
+```lua
+function util:split(pString, pPattern)
+    local Table  = {}
+    local fpat   = '(.-)' .. pPattern
+    local last_end = 1
+    local s, e, cap = pString:find(fpat, 1)
+    while s do
+        if s ~= 1 or cap ~= '' then
+            table.insert(Table, cap)
+        end
+        last_end = e + 1
+        s, e, cap = pString:find(fpat, last_end)
+    end
+    if last_end <= #pString then
+        cap = pString:sub(last_end)
+        table.insert(Table, cap)
+    end
+    return Table
+end
+```
+
+There is also a simpler variant (line 626) for delimiter-based splitting:
+
+```lua
+function util:split(s, delimiter)
+    local result = {}
+    for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+        table.insert(result, match)
+    end
+    return result
+end
+```
+
+**Usage:**
+
+```lua
+local parts = util:split("-gold 500 #3", " ")
+-- parts = { "-gold", "500", "#3" }
+```
+
+### `util:secondsToClock(seconds)`
+
+Formats a number of seconds as `"MM:SS"`.
+
+```lua
+util:secondsToClock(125) -- "02:05"
+```
+
+## Voting system
+
+### `util:CreateVoting(votingName, initiator, duration, percent, onaccept, onvote, ondecline, voteForInitiator)`
+
+Starts a server-side vote. The game is paused while the vote is active.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `votingName` | string | Unique identifier for this vote (used to prevent duplicate votes) |
+| `initiator` | number | `playerID` of the player who started the vote |
+| `duration` | number | Seconds before the vote times out |
+| `percent` | number | Percentage of players required to accept (default `100`) |
+| `onaccept` | function | Called when the vote passes |
+| `onvote` | function | Called each time any player casts a vote |
+| `ondecline` | function | Called when the vote fails |
+| `voteForInitiator` | any | Unused; reserved for auto-voting the initiator |
+
+```lua
+function util:CreateVoting(
+    votingName, initiator, duration, percent,
+    onaccept, onvote, ondecline, voteForInitiator
+)
+```
+
+**Cooldown:** After any vote (pass or fail) the initiator and the vote name are both blocked from starting another vote for 150 seconds. Players who have had two votes rejected are permanently banned from starting votes (`#votingPlayerBanned`).
+
+**Example** (from `commands.lua`):
+
+```lua
+util:CreateVoting(
+    "lodVotingAntirat",
+    playerID,
+    10,   -- 10-second voting window
+    OptionManager:GetOption('mapname') == 'all_allowed' and 50 or 100,
+    function()
+        OptionManager:SetOption('antiRat', 1)
+        Ingame:giveAntiRatProtection()
+        Ingame.voteAntiRat = true
+        EmitGlobalSound("Event.CheatEnabled")
+    end
+)
+```
+
+## Error display
+
+### `util:DisplayError(pid, message)`
+
+Sends an error message to a single player's screen via the `lodCreateIngameErrorMessage` Panorama event. Does nothing if the player is a bot.
+
+```lua
+function util:DisplayError(pid, message)
+    if PlayerResource:IsFakeClient(pid) then return end
+    local player = PlayerResource:GetPlayer(pid)
+    if player then
+        CustomGameEventManager:Send_ServerToPlayer(
+            player, "lodCreateIngameErrorMessage", {message = message}
+        )
+    end
+end
+```
+
+**Usage:**
+
+```lua
+util:DisplayError(playerID, "#antiRatAlreadyOn")
+util:DisplayError(playerID, "#votingCooldown")
+```
+
+The `message` string is typically a localisation key prefixed with `#`.
+
+## Player helpers
+
+### `util:isSinglePlayerMode()`
+
+Returns `true` when there is at most one non-bot player. Used to gate single-player shortcuts and redirect lobbies to bot mode.
+
+```lua
+function util:isSinglePlayerMode()
+    local count = 0
+    for playerID = 0, DOTA_MAX_TEAM_PLAYERS - 1 do
+        if not self:isPlayerBot(playerID) then
+            count = count + 1
+            if count > 1 then return false end
+        end
+    end
+    return true
+end
+```
+
+### `util:isPlayerBot(playerID)`
+
+Returns `true` if the player has Steam account ID 0 or is a fake client.
+
+```lua
+function util:isPlayerBot(playerID)
+    return PlayerResource:GetSteamAccountID(playerID) == 0
+        or PlayerResource:IsFakeClient(playerID)
+end
+```
+
+### `util:GetPlayerNameReliable(playerID)`
+
+Returns the player's name. Unlike `PlayerResource:GetPlayerName()`, this caches names from the `player_connect` event so it works correctly after disconnect.
+
+### `util:getPremiumRank(playerID)`
+
+Looks up the player's Steam ID in `util.contributors` and returns their premium rank number (0 = no premium).
+
+### `util:getVotingPower(playerID)`
+
+Returns `getPremiumRank(playerID) + 1`. Premium contributors get extra voting weight.
+
+### `util:GetActivePlayerCountForTeam(team)`
+
+Counts connected (state 1 or 2) players on the given `DOTA_TEAM_*` constant.
+
+### `util:GetActiveHumanPlayerCountForTeam(team)`
+
+Like `GetActivePlayerCountForTeam` but excludes bots.
+
+### `util:isCoop()`
+
+Returns `true` when one team has no human players (i.e. one side is all bots).
+
+## Ability helpers
+
+### `util:getAbilityKV(ability, key)`
+
+Accessor for the cached ability KV data loaded at startup into `util.abilityKVs`.
+
+```lua
+function util:getAbilityKV(ability, key)
+    if key then
+        if self.abilityKVs[ability] then
+            return self.abilityKVs[ability][key]
+        end
+    elseif ability then
+        return self.abilityKVs[ability]
+    else
+        return self.abilityKVs   -- return the entire KV table
+    end
+end
+```
+
+**Usage:**
+
+```lua
+-- Get a single key from an ability's KV block
+local perks = util:getAbilityKV('storm_spirit_ball_lightning', 'ReduxPerks')
+
+-- Get all KVs for an ability
+local kv = util:getAbilityKV('lina_dragon_slave')
+
+-- Get the full ability KV table
+local allKVs = util:getAbilityKV()
+```
+
+### `util:isChannelled(name)`
+
+Returns truthy if the named ability has `DOTA_ABILITY_BEHAVIOR_CHANNELLED` in its behavior flags.
+
+### `util:isTargetSpell(name)`
+
+Returns truthy if the named ability has `DOTA_ABILITY_BEHAVIOR_UNIT_TARGET` in its behavior flags.
+
+### `util:IsTalent(ability)`
+
+Accepts either an ability name string or an ability handle. Returns `true` if the ability name starts with `special_bonus_` (and is not `special_bonus_attributes`).
+
+### `util:IsVanillaInnate(ability)`
+
+Returns `true` if the ability's KV block has `Innate = 1`.
+
+### `util:IsSupposedToBeHidden(ability)`
+
+Returns `true` if the ability has `DOTA_ABILITY_BEHAVIOR_HIDDEN` or is a reserved name (`generic_hidden`, `ability_base`, etc.).
+
+## Table utilities
+
+### `util:MergeTables(t1, t2)`
+
+Deep-merges `t2` into `t1`. Sub-tables are merged recursively; scalar values are overwritten.
+
+### `util:DeepCopy(orig)`
+
+Returns a full deep copy of `orig`, preserving metatables.
+
+### `util:swapTable(input)`
+
+Inverts a KV table so values become keys. Nested tables are swapped recursively.
+
+### `util:sortTable(input)`
+
+Sorts a hero→ability table by the numeric position values stored in each ability entry.
+
+### `util:contains(table, element)`
+
+Returns `true` if `element` is a value anywhere in `table`.
+
+### `util:removeByValue(t, value)`
+
+Removes the first entry in `t` whose value equals `value`.
+
+### `util:tableCount(t)` / `util:getTableLength(t)`
+
+Counts the number of entries in `t` (works for non-sequential tables).
+
+## Network helpers
+
+### `util:EmitSoundOnClient(pid, sound)`
+
+Sends `lodEmitClientSound` to a single player's Panorama client. Does nothing for bots.
+
+### `util:EncodeByte(v)`
+
+Encodes an integer `0–254` as a single-character string for efficient network transmission (adds 1 so the null byte is avoided).

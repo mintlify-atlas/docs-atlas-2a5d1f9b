@@ -1,0 +1,81 @@
+---
+title: KV Files Overview
+description: Reference for all KeyValues data files used by Legends of Dota Redux.
+---
+
+## What is KV Format?
+
+KeyValues (KV) is Valve's lightweight key–value text format used throughout Dota 2 for data-driven configuration. A KV file consists of nested blocks delimited by braces, where each entry is either a `"key" "value"` pair or a named sub-block.
+
+```
+"RootBlock"
+{
+    "SimpleKey"    "SimpleValue"
+
+    "NestedBlock"
+    {
+        "ChildKey"  "1"
+    }
+}
+```
+
+In Lua, KV files are loaded with the built-in `LoadKeyValues` function:
+
+```lua
+local abilities = LoadKeyValues("scripts/kv/abilities.kv")
+
+-- Walk the top-level "skills" table
+for abilityName, value in pairs(abilities.skills.main) do
+    print(abilityName, value)
+end
+```
+
+KV files live under `scripts/kv/` inside the game addon directory. They are loaded once at game start and cached for the lifetime of the match.
+
+---
+
+## File Reference
+
+| File | Purpose |
+|---|---|
+| `abilities.kv` | Master list of every ability that appears on the skill-select screen, divided into named brackets/categories. |
+| `abilityDeps.kv` | Ability dependencies — if a player picks the ability on the left, they automatically receive the ability on the right. |
+| `bans.kv` | Ability combination bans. Handles special-case bans such as grouped banned sets, spammable spell lists, and multicast/spell-echo exclusions. |
+| `bot_skills.kv` | Priority-ordered ability lists that bots draw from when selecting their extra skills. |
+| `bot_skills_imba_WIP.kv` | OP ability list for bots. Currently unused. |
+| `camps.kv` | Defines neutral camp creature groups used by camp-spawning abilities (e.g. `spawn_small_camp`). |
+| `consumable_items.kv` | List of items that can be consumed by the consumable item system. |
+| `contributors.kv` | Credits data for the in-game credits page and gold-name cosmetics. |
+| `hashes.kv` | Internal hash mappings. |
+| `hero_perks.kv` | Maps perk categories (or specific abilities) to heroes for the perk-filter checkbox in the skill-pick menu. |
+| `owners.kv` | Internal ownership mappings. |
+| `perks.kv` | Determines which abilities Chen grants via his perk, and hero gender for QOP's perk. |
+| `randompicker.kv` | Used by the deprecated "True Random" ability. No longer active. |
+| `sounds.kv` | Sounds that will be precached at game start. |
+| `statuploadersettings.kv` | Web address used for uploading match statistics. |
+| `towers.kv` | Classifies tower abilities by power level to keep mirror-tower loadouts balanced. |
+| `ts_entities.kv` | Entities that must switch teams when a player switches teams. |
+| `unique_skills.kv` | Abilities a bot team will only pick once — prevents multiple bots from taking the same unique ability. |
+| `voting.kv` | Voting configuration. |
+| `wearables.kv` | Wearable library data (currently only the Roshan MAGA hat). |
+| `whatsup.kv` | Legacy welcome messages from the original Ash47 version. Unused. |
+
+---
+
+## Loading Pattern
+
+Most KV files follow the same load-and-cache pattern in Lua:
+
+```lua
+-- GameMode init (e.g. baselodmode.lua)
+self.abilityList  = LoadKeyValues("scripts/kv/abilities.kv")
+self.bans         = LoadKeyValues("scripts/kv/bans.kv")
+self.abilityDeps  = LoadKeyValues("scripts/kv/abilityDeps.kv")
+self.botSkills    = LoadKeyValues("scripts/kv/bot_skills.kv")
+```
+
+Values are plain strings in KV; cast them when needed:
+
+```lua
+local flag = tonumber(abilities.skills.main["pudge_flesh_heap"]) -- 1
+```

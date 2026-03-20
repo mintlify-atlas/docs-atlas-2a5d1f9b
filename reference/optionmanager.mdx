@@ -1,0 +1,161 @@
+---
+title: 'optionmanager.lua'
+description: 'Shared key–value store for game mode options'
+icon: 'sliders'
+---
+
+## Overview
+
+`OptionManager` is a global singleton that stores all configurable game-mode options as a flat key–value table. Other modules read and write options through two functions: `GetOption` and `SetOption`.
+
+The module is designed to be safe to require multiple times — a guard at the top prevents re-initialisation:
+
+```lua
+if not OptionManager then
+    OptionManager = OptionManager or {
+        options = {}
+    }
+end
+```
+
+## API
+
+### `OptionManager:GetOption(optionName, default)`
+
+Returns the current value of `optionName`. If the key has never been set, returns `default` (or `0` when no default is provided).
+
+```lua
+function OptionManager:GetOption(optionName, default)
+    if OptionManager.options[optionName] ~= nil then
+        return OptionManager.options[optionName]
+    end
+    return default or 0
+end
+```
+
+**Examples:**
+
+```lua
+-- Check whether anti-rat is enabled
+if OptionManager:GetOption('antiRat') == 1 then
+    -- ...
+end
+
+-- Read neutral multiply with a fallback
+local mult = OptionManager:GetOption('neutralMultiply', 1)
+
+-- Read the map name
+local map = OptionManager:GetOption('mapname')
+```
+
+### `OptionManager:SetOption(optionName, newValue)`
+
+Writes `newValue` into the option store.
+
+```lua
+function OptionManager:SetOption(optionName, newValue)
+    OptionManager.options[optionName] = newValue
+end
+```
+
+**Examples:**
+
+```lua
+-- Enable anti-rat after a successful vote
+OptionManager:SetOption('antiRat', 1)
+
+-- Double neutral creep spawns
+OptionManager:SetOption('neutralMultiply', 2)
+
+-- Store the current map name on init
+OptionManager:SetOption('mapname', GetMapName())
+
+-- Unlock the ingame hero builder
+OptionManager:SetOption('allowIngameHeroBuilder', 1)
+```
+
+## Default option values
+
+All defaults are written once during the first `require('optionmanager')` call (guarded by `OptionManager.initialSettings`).
+
+### Timing
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `maxOptionSelectionTime` | `300` | Max seconds for option selection |
+| `maxOptionVotingTime` | `30` | Max seconds for option voting |
+| `banningTime` | `90` | Duration of the ban phase (seconds) |
+| `heroBanningTime` | `60` | Duration of the hero ban phase |
+| `pickingTime` | `180` | Duration of the pick phase |
+| `randomSelectionTime` | `120` | Time to review random builds |
+| `reviewTime` | `15` | Post-pick review time |
+
+### Skill slots
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `maxSlots` | `6` | Total ability slots |
+| `maxSkills` | `6` | Max normal abilities |
+| `maxUlts` | `2` | Max ultimates (always rightmost slots) |
+| `startingLevel` | `1` | Hero starting level |
+| `maxHeroLevel` | `30` | Maximum hero level |
+
+### Game modifiers
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `bonusGold` | `0` | Bonus gold awarded to players |
+| `useEasyMode` | `true` | Enable easy mode |
+| `wtfMode` | `false` | No cooldowns or mana costs |
+| `freeScepter` | `false` | Give everyone a free Aghanim's |
+| `useLevel1ults` | `false` | Ultimates start at level 1 |
+| `fullPriceSellback` | `false` | Full gold refund on item sell |
+| `multicastMadness` | `false` | Multicast Madness mutator |
+| `useFatOMeter` | `false` | Fat-O-Meter tracking |
+| `allowIngameHeroBuilder` | `false` | Ingame hero rebuild panel |
+| `goldModifier` | `100` | Gold income multiplier (%) |
+| `expModifier` | `100` | Experience gain multiplier (%) |
+
+### Picking rules
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `forceRandomHero` | `false` | Force random hero assignment |
+| `forceUniqueSkills` | `0` | Prevent duplicate skills across picks |
+| `uniqueHeroes` | `0` | Prevent duplicate hero picks |
+| `banTrollCombos` | `true` | Block known troll ability combinations |
+| `useDraftArray` | `true` | Restrict picks to whitelisted heroes |
+| `autoDraftHeroNumber` | `10` | Heroes auto-allocated in draft mode |
+| `maxBans` | `5` | Maximum ability bans per game |
+| `maxHeroBans` | `2` | Maximum hero bans per game |
+| `enableHeroBanning` | `false` | Enable the hero banning phase |
+| `hostBanning` | `false` | Allow host to ban without a vote |
+| `gamemode` | `1` | Default gamemode index |
+| `balanceMode` | `0` | Balance mode variant |
+
+### Mutators
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `fastRunes` | `false` | Faster rune spawns |
+| `superRunes` | `false` | Super Runes mutator |
+| `vampirism` | `false` | Vampirism mutator |
+| `killstreakPower` | `false` | Killstreak power mutator |
+| `cooldownReduction` | `false` | Cooldown reduction mutator |
+| `explodeOnDeath` | `false` | Death explosion mutator |
+| `goldDropOnDeath` | `false` | Gold bag drop on death |
+| `resurrectAllies` | `false` | Ally resurrection mutator |
+| `randomLaneCreeps` | `false` | Random lane creep mutator |
+| `noHealthbars` | `false` | Hide health bars |
+| `convertableTowers` | `false` | Towers can be converted |
+| `memesRedux` | `0` | Memes Redux mutator |
+| `refreshCooldownsOnDeath` | `0` | Refresh all cooldowns on death |
+| `gottaGoFast` | `0` | Speed mutator |
+| `battleThirst` | `0` | Battle Thirst mutator |
+| `322` | `0` | 322 mode |
+
+### Runtime keys (not pre-seeded)
+
+These keys are written at runtime and have no static default in `optionmanager.lua`:
+
+`mapname` · `antiRat` · `neutralMultiply` · `allowIngameHeroBuilder` · `ingameBuilderPenalty` · `respawnModifier` · `respawnModifierConstant` · `respawnModifierPercentage` · `buybackCooldownConstant` · `strongTowers` · `towerCount` · `middleTowers` · `laneMultiply` · `darkMoon` · `sharedXP` · `goldPerTick` · `neutralItems` · `banInvis` · `consumeItems` · `stacking` · `turboCourier` · `extraAbility` · `globalCastRange` · `direBotDiff` · `radiantBotDiff` · `stupidBots` · `duplicateBots` · `botsSameHero` · `randomOnDeath` · `lodOptionCrazyWTF`

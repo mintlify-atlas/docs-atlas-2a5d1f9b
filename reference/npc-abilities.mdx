@@ -1,0 +1,172 @@
+---
+title: NPC Ability Definition Files
+description: How abilities are defined in npc_abilities_custom.txt and npc_abilities_override.txt.
+---
+
+Dota 2 defines abilities in KV files that follow the `DOTAAbilities` schema. Legends of Dota Redux uses two files to extend and override the base game's ability data:
+
+| File | Purpose |
+|---|---|
+| `npc_abilities_custom.txt` | Defines brand-new abilities that do not exist in the base game. |
+| `npc_abilities_override.txt` | Overrides specific fields on existing Dota 2 abilities (e.g. adjusted cooldowns or changed flags). |
+
+Both files live at `scripts/npc/` inside the addon directory.
+
+---
+
+## npc_abilities_custom.txt
+
+This file does **not** contain ability blocks directly. Instead, it is entirely composed of `#base` directives that include individual ability files:
+
+```
+#base "abilities\aa\angel_arena_archmage_anomaly.txt"
+#base "abilities\aa\angel_arena_berserk.txt"
+#base "abilities\overflow\spectral_form.txt"
+#base "abilities\custom\ranged_punch.txt"
+#base "abilities\custom\basic_mana_bonus.txt"
+...
+```
+
+Each `#base`-included file contains one or more ability definitions under the root `DOTAAbilities` block. This structure keeps individual abilities self-contained and easy to locate.
+
+## npc_abilities_override.txt
+
+Similarly, `npc_abilities_override.txt` uses `#base` directives to include per-hero override files:
+
+```
+#base "heroes\abaddon.txt"
+#base "heroes\alchemist.txt"
+#base "heroes\arc_warden.txt"
+...
+```
+
+Each hero override file patches specific fields on existing Dota 2 abilities without redefining the whole block.
+
+---
+
+## KV Ability Block Format
+
+Every ability block lives inside a `DOTAAbilities` root key:
+
+```
+"DOTAAbilities"
+{
+    "ability_name"
+    {
+        "BaseClass"            "<class>"
+        "ScriptFile"           "<path to lua file>"  // Lua abilities only
+        "AbilityTextureName"   "<icon name>"
+        "AbilityBehavior"      "<behavior flags>"
+        "AbilityCastRange"     "<per-level values>"
+        "AbilityManaCost"      "<per-level values>"
+        "AbilityCooldown"      "<per-level values>"
+        "AbilityCastPoint"     "<seconds>"
+
+        "AbilityValues"
+        {
+            "my_special_value"  "100 200 300 400"
+        }
+    }
+}
+```
+
+### Common Fields
+
+| Field | Description |
+|---|---|
+| `BaseClass` | The C++ base class. Use `ability_lua` for Lua-implemented abilities or a specific Dota base class (e.g. `ability_datadriven`). |
+| `ScriptFile` | Path to the Lua script relative to `scripts/vscripts/`. Required when `BaseClass` is `ability_lua`. |
+| `AbilityTextureName` | The icon to display, using the internal ability name of any Dota 2 or custom ability. |
+| `AbilityBehavior` | Pipe-separated behaviour flags (see table below). |
+| `AbilityCastRange` | Cast range in units, one value per level separated by spaces. |
+| `AbilityManaCost` | Mana cost, one value per level. |
+| `AbilityCooldown` | Cooldown in seconds, one value per level. |
+| `AbilityCastPoint` | Cast animation time in seconds. |
+| `AbilityValues` | Sub-block of named special values accessible from Lua via `ability:GetSpecialValueFor()`. |
+
+### AbilityBehavior Flags
+
+| Flag | Meaning |
+|---|---|
+| `DOTA_ABILITY_BEHAVIOR_NO_TARGET` | No target required; fires immediately on cast. |
+| `DOTA_ABILITY_BEHAVIOR_UNIT_TARGET` | Targets a single unit. |
+| `DOTA_ABILITY_BEHAVIOR_POINT` | Targets a ground location. |
+| `DOTA_ABILITY_BEHAVIOR_AOE` | Area of effect; shows a radius ring on cast. |
+| `DOTA_ABILITY_BEHAVIOR_PASSIVE` | Passive ability — no cast button. |
+| `DOTA_ABILITY_BEHAVIOR_TOGGLE` | Toggleable on/off. |
+| `DOTA_ABILITY_BEHAVIOR_CHANNELLED` | Channelled; interrupted by movement or stuns. |
+| `DOTA_ABILITY_BEHAVIOR_AUTOCAST` | Can be set to auto-cast. |
+
+Multiple flags are combined with a space-separated list:
+```
+"AbilityBehavior"  "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_AOE"
+```
+
+---
+
+## Real Example: ranged_punch
+
+The following is the full definition for `ranged_punch`, a custom Lua ability:
+
+```
+"DOTAAbilities"
+{
+    "ranged_punch"
+    {
+        "BaseClass"          "ability_lua"
+        "ScriptFile"         "abilities/ranged_punch.lua"
+        "AbilityTextureName" "tusk_walrus_punch"
+        "AbilityBehavior"    "DOTA_ABILITY_BEHAVIOR_POINT"
+        "AbilityCastRange"   "1000 1200 1400 1600"
+        "AbilityManaCost"    "90"
+        "AbilityCooldown"    "13 12 11 10"
+        "AbilityCastPoint"   "0.05"
+
+        "AbilityValues"
+        {
+            "projectile_speed"  "1000 1200 1400 1600"
+            "punch_damage"      "50 100 150 200"
+            "radius"
+            {
+                "value"                  "150"
+                "affected_by_aoe_increase" "1"
+            }
+            "knockback_distance"
+            {
+                "value"                  "350"
+                "affected_by_aoe_increase" "1"
+            }
+        }
+    }
+}
+```
+
+### How the Lua file links
+
+The `ScriptFile` path points to a Lua file at `scripts/vscripts/abilities/ranged_punch.lua`. That file defines a class that extends `BaseAbility` (or a Redux base class) and implements the ability logic:
+
+```lua
+ranged_punch = class({})
+
+function ranged_punch:OnSpellStart()
+    local caster = self:GetCaster()
+    local point  = self:GetCursorPosition()
+    local damage = self:GetSpecialValueFor("punch_damage")
+    -- ...
+end
+```
+
+The KV `AbilityValues` sub-block is what `GetSpecialValueFor("punch_damage")` reads. Scepter/Shard upgrades, talent bonuses, and AoE increase flags are all handled through this values block.
+
+---
+
+## Adding a New Custom Ability
+
+1. Create a new `.txt` file under `scripts/npc/abilities/custom/my_ability.txt` with the `DOTAAbilities` block.
+2. Add a `#base` line to `npc_abilities_custom.txt`:
+   ```
+   #base "abilities\custom\my_ability.txt"
+   ```
+3. Create the corresponding Lua script at `scripts/vscripts/abilities/my_ability.lua`.
+4. Add the ability name to `abilities.kv` in the appropriate bracket.
+5. Restart the server to pick up the new files.

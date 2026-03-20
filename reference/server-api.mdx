@@ -1,0 +1,64 @@
+---
+title: Server API Overview
+description: Overview of the Legends of Dota Redux ASP.NET backend, authentication, and all available endpoints.
+---
+
+The Legends of Dota Redux server is an **ASP.NET Core** application (`LegendsOfDota` namespace) that exposes a small REST API used by the in-game Lua code for persistent storage: skill builds, user settings, voting, and favorites.
+
+## Base URL
+
+The base URL is configured at deployment time. All routes are relative to the root path `/`.
+
+## Authentication
+
+Most endpoints require a shared-secret header:
+
+```
+Auth-Key: <LodAuthKey>
+```
+
+`LodAuthKey` is set in `appsettings.json` on the server. The default value in the repository is:
+
+```
+9AE2940BA48F394CD13CAB9F813E861334C3E6F814425710EC2ED6AA75560898
+```
+
+<Warning>
+Change `LodAuthKey` to a unique secret before deploying to a production server. The default value is public.
+</Warning>
+
+If the header is missing or does not match, the server returns **HTTP 401 Unauthorized** (or `{"success":false,"error":"unauthorized"}` for skill build endpoints).
+
+## Content Type
+
+All `POST` requests send data as `application/x-www-form-urlencoded` with a `data` field that contains a JSON string.
+
+```
+Content-Type: application/x-www-form-urlencoded
+
+data={"steamID":"76561197966504115",...}
+```
+
+## Endpoints
+
+| Method | Path | Auth Required | Description |
+|---|---|---|---|
+| `POST` | `/saveOptions` | Yes | Save or update a player's settings blob. |
+| `POST` | `/loadOptions` | Yes | Load a player's settings blob by Steam ID. |
+| `POST` | `/createSkillBuild` | Yes | Persist a new skill build to the database. |
+| `POST` | `/removeSkillBuild` | Yes | Delete a skill build and its associated favorites. |
+| `GET` | `/getSkillBuilds` | No | Paginated list of all skill builds with vote tallies. |
+| `POST` | `/setFavoriteSkillBuild` | Yes | Add or remove a skill build from a player's favorites. |
+| `POST` | `/voteSkillBuild` | Yes | Cast an upvote or downvote on a skill build. |
+| `GET` | `/getFavoriteSkillBuilds` | No | List all favorited skill build IDs for a player. |
+
+## Sub-pages
+
+<CardGroup cols={2}>
+  <Card title="Skill Builds API" icon="layer-group" href="/reference/skill-builds-api">
+    Full reference for creating, retrieving, voting on, and favoriting skill builds.
+  </Card>
+  <Card title="User Settings API" icon="gear" href="/reference/user-settings-api">
+    Save and load per-player settings blobs keyed by Steam ID.
+  </Card>
+</CardGroup>
