@@ -1,0 +1,126 @@
+{
+  "projectType": "general",
+  "projectName": "Legends of Dota Redux",
+  "projectDescription": "A Dota 2 custom game mode that lets players build heroes by combining abilities from any hero, with hundreds of abilities, mutators, bots, and a shared skill-build system.",
+  "theme": "maple",
+  "primaryColor": "#7c7c7c",
+  "lightColor": "#060606",
+  "darkColor": "#969696",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "installation"]
+          },
+          {
+            "group": "Gameplay",
+            "pages": [
+              "gameplay/game-phases",
+              "gameplay/ability-selection",
+              "gameplay/hero-builds",
+              "gameplay/mutators",
+              "gameplay/chat-commands",
+              "gameplay/cheat-commands"
+            ]
+          },
+          {
+            "group": "Abilities",
+            "pages": [
+              "abilities/overview",
+              "abilities/categories",
+              "abilities/troll-combos",
+              "abilities/op-abilities",
+              "abilities/custom-abilities",
+              "abilities/hero-perks"
+            ]
+          },
+          {
+            "group": "Game Modes & Options",
+            "pages": [
+              "modes/game-modes",
+              "modes/voting",
+              "modes/advanced-options",
+              "modes/bot-support"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing/setup",
+              "contributing/adding-abilities",
+              "contributing/credits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Scripting",
+            "pages": [
+              "reference/vscripts-overview",
+              "reference/pregame",
+              "reference/ingame",
+              "reference/commands",
+              "reference/optionmanager",
+              "reference/util"
+            ]
+          },
+          {
+            "group": "Data Files",
+            "pages": [
+              "reference/kv-files",
+              "reference/abilities-kv",
+              "reference/bans-kv",
+              "reference/npc-abilities"
+            ]
+          },
+          {
+            "group": "Server API",
+            "pages": [
+              "reference/server-api",
+              "reference/skill-builds-api",
+              "reference/user-settings-api"
+            ]
+          },
+          {
+            "group": "Changelog",
+            "pages": ["changelog"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Mix-and-match ability drafting from any Dota 2 hero",
+    "Hundreds of custom and modded abilities",
+    "Extensive mutator system (vampirism, kill streak, random spells, and more)",
+    "Bot AI support with configurable difficulty",
+    "Community skill build sharing with voting and favorites",
+    "Troll combo detection and balance bans",
+    "Hero perks system tied to selected abilities",
+    "In-game chat voting system for game options",
+    "Cheat/debug command suite for testing",
+    "Server-side stat and settings persistence"
+  ],
+  "publicApiSurface": [
+    "POST /saveOptions — persist player settings by Steam ID",
+    "POST /loadOptions — retrieve player settings by Steam ID",
+    "POST /createSkillBuild — submit a new community skill build",
+    "POST /removeSkillBuild — delete a skill build",
+    "GET  /getSkillBuilds — list all community skill builds",
+    "POST /setFavoriteSkillBuild — favorite/unfavorite a build",
+    "POST /voteSkillBuild — upvote or downvote a skill build",
+    "GET  /getFavoriteSkillBuilds — get a player's favorited builds",
+    "Commands.OnPlayerChat — in-game chat command handler",
+    "Pregame:init — initialise pre-game phase",
+    "Ingame:init — initialise in-game phase",
+    "OptionManager:GetOption / SetOption — read and write game options",
+    "util:CreateVoting — start a player vote",
+    "util:DisplayError — send an error message to a player"
+  ]
+}
