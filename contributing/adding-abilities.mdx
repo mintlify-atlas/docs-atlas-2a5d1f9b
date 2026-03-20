@@ -39,6 +39,16 @@ Abilities in Legends of Dota Redux are defined across several files: a Lua scrip
         if self:GetCaster():PassivesDisabled() then return 0 end
         return self:GetAbility():GetSpecialValueFor("stat_bonus")
     end
+
+    function modifier_basic_stat_bonus:GetModifierBonusStats_Agility()
+        if self:GetCaster():PassivesDisabled() then return 0 end
+        return self:GetAbility():GetSpecialValueFor("stat_bonus")
+    end
+
+    function modifier_basic_stat_bonus:GetModifierBonusStats_Intellect()
+        if self:GetCaster():PassivesDisabled() then return 0 end
+        return self:GetAbility():GetSpecialValueFor("stat_bonus")
+    end
     ```
 
     For event-driven abilities (spells with `OnSpellStart`, kill events, etc.), you define plain functions without a class structure. See `arcane_mastery.lua` for a minimal example:
@@ -50,9 +60,10 @@ Abilities in Legends of Dota Redux are defined across several files: a Lua scrip
 
         if caster:HasModifier("modifier_custom_arcane_mastery") then
             caster:RemoveModifierByName("modifier_custom_arcane_mastery")
+            ability:ApplyDataDrivenModifier(caster, caster, "modifier_custom_arcane_mastery", nil)
+        else
+            ability:ApplyDataDrivenModifier(caster, caster, "modifier_custom_arcane_mastery", nil)
         end
-
-        ability:ApplyDataDrivenModifier(caster, caster, "modifier_custom_arcane_mastery", nil)
     end
 
     function onHeroKill(event)

@@ -91,7 +91,7 @@ Starts a server-side vote. The game is paused while the vote is active.
 | `onaccept` | function | Called when the vote passes |
 | `onvote` | function | Called each time any player casts a vote |
 | `ondecline` | function | Called when the vote fails |
-| `voteForInitiator` | any | Unused; reserved for auto-voting the initiator |
+| `voteForInitiator` | any | When `false`, the initiator's vote is NOT automatically cast as "yes". Any other value (including `nil`, the default) causes the initiator to immediately vote yes. |
 
 ```lua
 function util:CreateVoting(
